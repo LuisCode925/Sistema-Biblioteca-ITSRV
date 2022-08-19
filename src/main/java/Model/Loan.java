@@ -23,10 +23,10 @@ public class Loan{
     private short Renovations;
     private double PenaltyFee;
     private int Autorize;
-    private int Sender;
+    private int Receiver;
 
     // 0, 0, Long.MIN_VALUE, new Date(), new Date(), Short.MIN_VALUE, 0, 0
-    public Loan(int Id, int ControlNumber, Long ISBM, Calendar LoanDate, Calendar ReturnDate,Calendar lastUpdate, boolean Delivered, short Renovations, double PenaltyFee, int Autorize, int Sender) {
+    public Loan(int Id, int ControlNumber, Long ISBM, Calendar LoanDate, Calendar ReturnDate,Calendar lastUpdate, boolean Delivered, short Renovations, double PenaltyFee, int Autorize, int Receiver) {
         this.Id = Id;
         this.ControlNumber = ControlNumber;
         this.ISBN = ISBM;
@@ -37,7 +37,7 @@ public class Loan{
         this.Renovations = Renovations;
         this.PenaltyFee = PenaltyFee;
         this.Autorize = Autorize;
-        this.Sender = Sender;
+        this.Receiver = Receiver;
     }
 
     public int getId() {
@@ -120,12 +120,12 @@ public class Loan{
         this.Autorize = Autorize;
     }
 
-    public int getSender() {
-        return Sender;
+    public int getReceiver() {
+        return Receiver;
     }
 
-    public void setSender(int Sender) {
-        this.Sender = Sender;
+    public void setReceiver(int Receiver) {
+        this.Receiver = Receiver;
     }
     
 }

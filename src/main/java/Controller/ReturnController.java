@@ -101,7 +101,7 @@ public class ReturnController implements ActionListener, FocusListener {
             this.returnView.lblLibrarianId.setVisible(false);
             this.returnView.lblLibrarianId.setText(String.valueOf(Main.Administrator.getId()));
         } catch (NullPointerException e) {
-            System.out.println("Error Return labels: "+e.getMessage());
+            System.out.println("Librarian Administrator es "+e.getMessage());
         }
         
     }

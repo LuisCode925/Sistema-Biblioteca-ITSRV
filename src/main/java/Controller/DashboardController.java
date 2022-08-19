@@ -5,14 +5,18 @@
  */
 package Controller;
 
-import View.BookView;
 import View.Dashboard;
-import View.HomeView;
-import View.LoanView;
-import View.ReportView;
-import View.ReturnView;
-import View.SettingView;
-import View.UserView;
+import Controller.*;
+import Model.DAO.*;
+import Model.Book;
+import Model.ConnectionDB;
+import Model.Loan;
+import Model.User;
+import Model.Librarian;
+import Model.SettingsProperties;
+import System.Main;
+import View.*;
+import java.util.Calendar;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
@@ -28,35 +32,19 @@ import javax.swing.JPanel;
 public class DashboardController implements ActionListener, FocusListener {
     
     // Ventana del Controlador
-    Dashboard dashboard;
-    HomeView home;
-    LoanView loan;
-    ReturnView returnView;
-    UserView user;
-    BookView book;
-    ReportView report;
-    SettingView setting;
+    public Dashboard dashboard;
+    public HomeView homeView;
+    public LoanView loanView;
+    public ReturnView returnView;
+    public UserView userView;
+    public BookView bookView;
+    public ReportView reportView;
+    public SettingView settingView;
      
-    public DashboardController(Dashboard dashboard, HomeView home, LoanView loan, ReturnView returnView, UserView user, BookView book, ReportView report, SettingView setting) {
+    public DashboardController(Dashboard dashboard) {
         this.dashboard = dashboard;
-        
-        // Se establecen las vistas que cambiaran dependiendo de los eventos del menu.
-        this.home = home;
-        this.loan = loan;
-        this.returnView = returnView;
-        this.user = user;
-        this.book = book;
-        this.report = report;
-        this.setting = setting;
-        
-        // Configuracion de los botones del menu.
-        this.addActionToButtons();
-        
-        // Focus
-        this.addFocusToButtons();
-                
-        // Establecemos el Principal por defecto.
-        ShowContent(this.home);
+        this.addActionToButtons(); // Evento Action para cambiar los paneles (Views).
+        this.addFocusToButtons();// Evento Focus para hacer el cambio color del background.
     }
     
     private void addActionToButtons(){
@@ -82,8 +70,97 @@ public class DashboardController implements ActionListener, FocusListener {
     public void init(){
         dashboard.setTitle("Sistema Control de Biblioteca");
         dashboard.setLocationRelativeTo(null);
+        if(Main.Administrator!=null){
+            disableSidebar(false);
+            initAllControllers();
+        } else {
+            disableSidebar(true);
+            homeController();
+            settingController();
+        }
+        ShowContent(this.homeView); // Se establce el panel de login por defecto.
     }
     
+    public void disableSidebar(boolean state){
+        this.dashboard.btnLoan.setEnabled(state);
+        this.dashboard.btnReturn.setEnabled(state);
+        this.dashboard.btnUser.setEnabled(state);
+        this.dashboard.btnBook.setEnabled(state);
+        this.dashboard.btnReport.setEnabled(state);
+    }
+    
+    public void initAllControllers(){
+        homeController();
+        loanController();
+        returnController();
+        userController();
+        bookController();
+        settingController();
+        reportController();
+    }
+    
+    private void homeController(){
+        Librarian librarian = new Librarian(0, "", "", "", "", "");
+        LibrarianDAO librarianDAO = new  LibrarianDAO();
+        this.homeView = new HomeView();
+        HomeController ctrlHome = new HomeController(librarian, librarianDAO, homeView);
+    }
+    
+    private void loanController(){
+        Calendar LoanDate = Calendar.getInstance();
+        Calendar ReturnDate = Calendar.getInstance();
+        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, null, true, Short.MIN_VALUE, 0, 0, 0);
+        LoanDAO loanDAO = new LoanDAO();
+        UserDAO userDAO = new UserDAO();
+        BookDAO bookDAO = new BookDAO();
+        this.loanView= new LoanView(); //
+        LoanController ctrlLoan = new LoanController(loan, loanDAO, loanView, userDAO, bookDAO);
+    }
+    
+    private void reportController(){
+        Calendar LoanDate = Calendar.getInstance();
+        Calendar ReturnDate = Calendar.getInstance();
+        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, null, true, Short.MIN_VALUE, 0, 0, 0);
+        LoanDAO loanDAO = new LoanDAO();
+        this.reportView = new ReportView();
+        ReportController ctrlReport = new ReportController(loan, loanDAO, reportView);
+    }
+    
+    private void returnController(){
+        Calendar LoanDate = Calendar.getInstance();
+        Calendar ReturnDate = Calendar.getInstance();
+        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, null, true, Short.MIN_VALUE, 0, 0, 0);
+        LoanDAO loanDAO = new LoanDAO();
+        UserDAO userDAO = new UserDAO();
+        BookDAO bookDAO = new BookDAO();
+        this.returnView = new ReturnView();
+        ReturnController ctrlReturn = new ReturnController(loan, loanDAO, returnView, userDAO, bookDAO);
+
+    }
+    
+    private void bookController(){
+        Calendar YearPublication = Calendar.getInstance();
+        Book book = new Book( 0, "", "", "", 0, YearPublication, 0, 0, 0, "", "", 0, 0);
+        BookDAO bookDAO = new BookDAO();
+        this.bookView = new BookView();
+        AddEditBook addEditBook = new AddEditBook();
+        BookController ctrlBook = new BookController(book, bookDAO, bookView, addEditBook);
+    }
+    
+    private void userController(){
+        User user = null; 
+        UserDAO userDAO = new UserDAO();
+        this.userView = new UserView();
+        AddEditUser addEditUser = new AddEditUser();
+        UserController ctrlUser = new UserController(user, userDAO, userView, addEditUser);
+    }
+    
+    private void settingController(){
+        SettingsProperties properties = new SettingsProperties();
+        ConnectionDB con = new ConnectionDB();
+        this.settingView = new SettingView();
+        SettingController ctrlSetting = new SettingController(settingView, properties, con);
+    }
     
     private void ShowContent(JPanel panel){
         panel.setSize(1000, 750);
@@ -95,13 +172,27 @@ public class DashboardController implements ActionListener, FocusListener {
     
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource()== dashboard.btnHome) { ShowContent(this.home); }
-        if (e.getSource()== dashboard.btnLoan) { ShowContent(this.loan); }
-        if (e.getSource()== dashboard.btnReturn) { ShowContent(this.returnView); }
-        if (e.getSource()== dashboard.btnUser) { ShowContent(this.user); }
-        if (e.getSource()== dashboard.btnBook) { ShowContent(this.book); }
-        if (e.getSource()== dashboard.btnReport) { ShowContent(this.report); }
-        if (e.getSource()== dashboard.btnSetting) { ShowContent(this.setting); }
+        if (e.getSource()== dashboard.btnHome) { 
+            homeController(); ShowContent(this.homeView); 
+        }
+        if (e.getSource()== dashboard.btnLoan) { 
+            loanController(); ShowContent(this.loanView); 
+        }
+        if (e.getSource()== dashboard.btnReturn) { 
+            returnController(); ShowContent(this.returnView); 
+        }
+        if (e.getSource()== dashboard.btnUser) { 
+            userController(); ShowContent(this.userView); 
+        }
+        if (e.getSource()== dashboard.btnBook) { 
+            bookController(); ShowContent(this.bookView); 
+        }
+        if (e.getSource()== dashboard.btnReport) { 
+            reportController(); ShowContent(this.reportView); 
+        }
+        if (e.getSource()== dashboard.btnSetting) { 
+            ShowContent(this.settingView); 
+        }
     }
 
     @Override

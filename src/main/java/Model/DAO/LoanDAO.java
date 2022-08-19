@@ -7,9 +7,11 @@ package Model.DAO;
 import Model.ConnectionDB;
 import Model.Loan;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -20,6 +22,10 @@ import java.util.List;
  */
 public class LoanDAO extends ConnectionDB {
     
+    /**
+     * Function to call to UPDATE_PENALTY_FEE and update the value of the field
+     * @return true if the call to the event in mysql server finished succesfull
+     */
     public static boolean updatePenaltyFee(){
         PreparedStatement ps = null;
         ConnectionDB con = new ConnectionDB();
@@ -33,9 +39,14 @@ public class LoanDAO extends ConnectionDB {
             System.out.println("Error al updatePenaltyFee: " + e.getMessage());
             return false;
         }
-    } //======================================================
+    }
     
-    // Obtiene solo un prestamo espesificando el Numero de Control y el ISBN
+    /**
+     * 
+     * @param ISBN the unique identifier that ever book have 
+     * @param ControlNumber the ID for the users students and profesors
+     * @return a loan object that mathces with the params 
+     */
     public Loan getLoan(Long ISBN, int ControlNumber){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -80,23 +91,29 @@ public class LoanDAO extends ConnectionDB {
                 loan.setPenaltyFee(rs.getDouble(9));
                 
                 loan.setAutorize(rs.getInt(10));
-                loan.setSender(rs.getInt(11));
+                loan.setReceiver(rs.getInt(11));
               
             }
         } catch (SQLException e) {
             System.out.println("Error getLoan: " + e.getMessage());
         }
         return loan;
-    }// =============================================
+    }
     
-    // Obtiene todos los prestamos de la Base de Datos.
-    public List<Loan> getAllLoans(){
+    /**
+     * This function joins the loans table with the librarian table
+     * @return a list of loans with the names of the autorizer and Receiver
+     */
+    public List<Object[]> getAllLoans(){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
         
-        List<Loan> datos = new ArrayList<>();
-        String sql = "SELECT * FROM loans";
+        List<Object[]> datos = new ArrayList<>();
+        //String sql = "SELECT * FROM loans";
+        String sql = "SELECT loans.Id, loans.ControlNumber, loans.ISBN, loans.LoanDate, loans.ReturnDate, loans.Delivered, loans.Renovations, loans.PenaltyFee, "
+                + "CONCAT(librarians.Names, \" \", librarians.LastNames) as Autorize, CONCAT(librarians.Names, \" \", librarians.LastNames) as Receiver "
+                + "FROM loans INNER JOIN librarians ON loans.Autorize=librarians.Id";
         
         try {
             ps = con.prepareStatement(sql);
@@ -106,52 +123,114 @@ public class LoanDAO extends ConnectionDB {
                 
                 Calendar LoanDate = Calendar.getInstance();
                 Calendar ReturnDate = Calendar.getInstance();
-                Calendar lastUpdate = Calendar.getInstance();
                 
-                Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, lastUpdate, false, Short.MIN_VALUE, 0, 0, 0);
-               
+                Object[] loanObj = new Object[10];
+                
                 // Se comineza desde la columna 1 no del 0.
-                loan.setId(rs.getInt(1));
-                loan.setControlNumber(rs.getInt(2));
-                loan.setISBN(rs.getLong(3));
+                loanObj[0] = rs.getInt(1); // Id
+                loanObj[1] = rs.getInt(2); // Numero de control
+                loanObj[2] = rs.getLong(3); // ISBN
                 
                 // sql.date to Calendar
-                LoanDate.setTime(rs.getDate(4));
-                loan.setLoanDate(LoanDate);
-              
+                LoanDate.setTime(rs.getDate(4));   
+                SimpleDateFormat LDF = new SimpleDateFormat("dd/MM/yyyy");
+                loanObj[3] = LDF.format(LoanDate.getTime());
+             
                 // sql.date to Calendar
                 ReturnDate.setTime(rs.getDate(5));
-                loan.setReturnDate(ReturnDate);
+                SimpleDateFormat RDF = new SimpleDateFormat("dd/MM/yyyy");
+                loanObj[4] = RDF.format(ReturnDate.getTime());
                 
-                // sql.date to Calendar
-                if (rs.getDate(6)!=null) {
-                    lastUpdate.setTime(rs.getDate(6));
-                    loan.setLastUpdate(lastUpdate);
-                }
+                loanObj[5] = rs.getBoolean(6);
+                loanObj[6] = rs.getShort(7);
+                loanObj[7] = rs.getDouble(8);
                 
-                loan.setDelivered(rs.getBoolean(7));
-                loan.setRenovations(rs.getShort(8));
-                loan.setPenaltyFee(rs.getDouble(9));
-                
-                loan.setAutorize(rs.getInt(10));
-                loan.setSender(rs.getInt(11));
+                loanObj[8] = rs.getString(9);
+                loanObj[9] = rs.getString(10);
               
-                datos.add(loan);
+                datos.add(loanObj);
             }
         } catch (SQLException e) {
             System.out.println("Error getAllLoans: " + e.getMessage());
         }
         return datos;
-    }// ====================================================================
+    }
     
-    // Obtiene todos los prestamos de la Base de Datos.
-    public List<Loan> getLoansByDelivery(boolean delivery){
+    /**
+     * 
+     * @param start this Calendar Object define the start of the date
+     * @param end this Calendar Object define the end of the date
+     * @return a list of Loans these match the established range.
+     */
+    public List<Object[]> getAllLoans(Calendar start,Calendar end){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
         
-        List<Loan> datos = new ArrayList<>();
-        String sql = "SELECT * FROM loans WHERE Delivered=?";
+        List<Object[]> datos = new ArrayList<>();
+        String sql = "SELECT loans.Id, loans.ControlNumber, loans.ISBN, loans.LoanDate, loans.ReturnDate, loans.Delivered, loans.Renovations, loans.PenaltyFee, "
+                + "CONCAT(librarians.Names, \" \", librarians.LastNames) as Autorize, CONCAT(librarians.Names, \" \", librarians.LastNames) as Sender "
+                + "FROM loans INNER JOIN librarians ON loans.Autorize=librarians.Id"
+                + " WHERE (loans.LoanDate BETWEEN ? AND ?)";
+        
+        try {
+            ps = con.prepareStatement(sql);       
+            ps.setDate(1, new java.sql.Date(start.getTimeInMillis()));
+            ps.setDate(2, new java.sql.Date(end.getTimeInMillis()));
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                
+                Calendar LoanDate = Calendar.getInstance();
+                Calendar ReturnDate = Calendar.getInstance();
+                
+                Object[] loanObj = new Object[10];
+                
+                // Se comineza desde la columna 1 no del 0.
+                loanObj[0] = rs.getInt(1); // Id
+                loanObj[1] = rs.getInt(2); // Numero de control
+                loanObj[2] = rs.getLong(3); // ISBN
+                
+                // sql.date to Calendar
+                LoanDate.setTime(rs.getDate(4));   
+                SimpleDateFormat LDF = new SimpleDateFormat("dd/MM/yyyy");
+                loanObj[3] = LDF.format(LoanDate.getTime());
+             
+                // sql.date to Calendar
+                ReturnDate.setTime(rs.getDate(5));
+                SimpleDateFormat RDF = new SimpleDateFormat("dd/MM/yyyy");
+                loanObj[4] = RDF.format(ReturnDate.getTime());
+                
+                loanObj[5] = rs.getBoolean(6);
+                loanObj[6] = rs.getShort(7);
+                loanObj[7] = rs.getDouble(8);
+                
+                loanObj[8] = rs.getString(9);
+                loanObj[9] = rs.getString(10);
+              
+                datos.add(loanObj);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getAllLoans: " + e.getMessage());
+        }
+        return datos;
+    }
+    
+    /**
+     * 
+     * @param delivery will filter the search acording fi the loan is delivered or pending
+     * @return a list of Loans these match this boolean.
+     */
+    public List<Object[]> getLoansByDelivery(boolean delivery){
+        PreparedStatement ps = null;
+        Connection con = getConnection();
+        ResultSet rs = null;
+        
+        List<Object[]> datos = new ArrayList<>();
+        String sql = "SELECT loans.Id, loans.ControlNumber, loans.ISBN, loans.LoanDate, loans.ReturnDate, loans.Delivered, loans.Renovations, loans.PenaltyFee, "
+                    + "CONCAT(librarians.Names, \" \", librarians.LastNames) AS Autorize, CONCAT(librarians.Names, \" \", librarians.LastNames) " 
+                    + "FROM loans loans INNER JOIN librarians ON loans.Autorize=librarians.Id " 
+                    +"WHERE (loans.Delivered=?)";
         
         try {
             ps = con.prepareStatement(sql);
@@ -159,46 +238,102 @@ public class LoanDAO extends ConnectionDB {
             rs = ps.executeQuery();
             
             while (rs.next()) {
-                
                 Calendar LoanDate = Calendar.getInstance();
                 Calendar ReturnDate = Calendar.getInstance();
-                Calendar lastUpdate = Calendar.getInstance();
                 
-                Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, lastUpdate, false, Short.MIN_VALUE, 0, 0, 0);
-               
+                Object[] loanObj = new Object[10];
+                
                 // Se comineza desde la columna 1 no del 0.
-                loan.setId(rs.getInt(1));
-                loan.setControlNumber(rs.getInt(2));
-                loan.setISBN(rs.getLong(3));
+                loanObj[0] = rs.getInt(1); // Id
+                loanObj[1] = rs.getInt(2); // Numero de control
+                loanObj[2] = rs.getLong(3); // ISBN
                 
                 // sql.date to Calendar
-                LoanDate.setTime(rs.getDate(4));
-                loan.setLoanDate(LoanDate);
-              
+                LoanDate.setTime(rs.getDate(4));   
+                SimpleDateFormat LDF = new SimpleDateFormat("dd/MM/yyyy");
+                loanObj[3] = LDF.format(LoanDate.getTime());
+             
                 // sql.date to Calendar
                 ReturnDate.setTime(rs.getDate(5));
-                loan.setReturnDate(ReturnDate);
+                SimpleDateFormat RDF = new SimpleDateFormat("dd/MM/yyyy");
+                loanObj[4] = RDF.format(ReturnDate.getTime());
                 
-                // sql.date to Calendar
-                if (rs.getDate(6)!=null) {
-                    lastUpdate.setTime(rs.getDate(6));
-                    loan.setLastUpdate(lastUpdate);
-                }
+                loanObj[5] = rs.getBoolean(6);
+                loanObj[6] = rs.getShort(7);
+                loanObj[7] = rs.getDouble(8);
                 
-                loan.setDelivered(rs.getBoolean(7));
-                loan.setRenovations(rs.getShort(8));
-                loan.setPenaltyFee(rs.getDouble(9));
-                
-                loan.setAutorize(rs.getInt(10));
-                loan.setSender(rs.getInt(11));
+                loanObj[8] = rs.getString(9);
+                loanObj[9] = rs.getString(10);
               
-                datos.add(loan);
+                datos.add(loanObj);
             }
         } catch (SQLException e) {
             System.out.println("Error getLoansByDelivery: " + e.getMessage());
         }
         return datos;
-    }// ====================================================================
+    }
+    
+    /**
+     * 
+     * @param delivery filter for delivered or pending
+     * @param start this Calendar Object define the start of the date
+     * @param end this Calendar Object define the end of the date
+     * @return a list of Loans these match the established range.
+     */
+    public List<Object[]> getLoansByDelivery(boolean delivery, Calendar start, Calendar end){
+        PreparedStatement ps = null;
+        Connection con = getConnection();
+        ResultSet rs = null;
+        
+        List<Object[]> datos = new ArrayList<>();
+        String sql = "SELECT loans.Id, loans.ControlNumber, loans.ISBN, loans.LoanDate, loans.ReturnDate, loans.Delivered, loans.Renovations, loans.PenaltyFee, "
+                    + "CONCAT(librarians.Names, \" \", librarians.LastNames) AS Autorize, CONCAT(librarians.Names, \" \", librarians.LastNames) " 
+                    + "FROM loans loans INNER JOIN librarians ON loans.Autorize=librarians.Id " 
+                    + "WHERE (loans.Delivered=?) "
+                    + "AND (loans.LoanDate BETWEEN ? AND ?)";
+        
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setBoolean(1, delivery);       
+            ps.setDate(2, new java.sql.Date(start.getTimeInMillis()));
+            ps.setDate(3, new java.sql.Date(end.getTimeInMillis()));
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+                Calendar LoanDate = Calendar.getInstance();
+                Calendar ReturnDate = Calendar.getInstance();
+                
+                Object[] loanObj = new Object[10];
+                
+                // Se comineza desde la columna 1 no del 0.
+                loanObj[0] = rs.getInt(1); // Id
+                loanObj[1] = rs.getInt(2); // Numero de control
+                loanObj[2] = rs.getLong(3); // ISBN
+                
+                // sql.date to Calendar
+                LoanDate.setTime(rs.getDate(4));   
+                SimpleDateFormat LDF = new SimpleDateFormat("dd/MM/yyyy");
+                loanObj[3] = LDF.format(LoanDate.getTime());
+             
+                // sql.date to Calendar
+                ReturnDate.setTime(rs.getDate(5));
+                SimpleDateFormat RDF = new SimpleDateFormat("dd/MM/yyyy");
+                loanObj[4] = RDF.format(ReturnDate.getTime());
+                
+                loanObj[5] = rs.getBoolean(6);
+                loanObj[6] = rs.getShort(7);
+                loanObj[7] = rs.getDouble(8);
+                
+                loanObj[8] = rs.getString(9);
+                loanObj[9] = rs.getString(10);
+              
+                datos.add(loanObj);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getLoansByDelivery: " + e.getMessage());
+        }
+        return datos;
+    }
     
     // Obtiene todos los prestamos de la Base de Datos que vencen HOY
     public List<Loan> getLoansToFinalize(){
@@ -478,7 +613,7 @@ public class LoanDAO extends ConnectionDB {
                 loan.setPenaltyFee(rs.getDouble(9));
                 
                 loan.setAutorize(rs.getInt(10));
-                loan.setSender(rs.getInt(11));
+                loan.setReceiver(rs.getInt(11));
                 datos.add(loan);
             }
         } catch (SQLException e) {

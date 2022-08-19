@@ -78,8 +78,8 @@
                         <Column editable="true" title="Estado" type="java.lang.Boolean"/>
                         <Column editable="true" title="Renovaciones" type="java.lang.Object"/>
                         <Column editable="true" title="Multa" type="java.lang.Double"/>
-                        <Column editable="true" title="Entrego" type="java.lang.Object"/>
-                        <Column editable="true" title="Recibio" type="java.lang.Object"/>
+                        <Column editable="true" title="Entrego" type="java.lang.String"/>
+                        <Column editable="true" title="Recibio" type="java.lang.String"/>
                       </Table>
                     </Property>
                     <Property name="columnModel" type="javax.swing.table.TableColumnModel" editor="org.netbeans.modules.form.editors2.TableColumnModelEditor">

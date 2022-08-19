@@ -12,6 +12,8 @@ import Model.User;
 import Model.DAO.UserDAO;
 import View.LoanView;
 import System.Main;
+import com.toedter.calendar.JDateChooser;
+import com.toedter.calendar.JTextFieldDateEditor;
 // import com.google.gson.Gson;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -24,6 +26,7 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import org.jdesktop.swingx.autocomplete.ObjectToStringConverter;
@@ -58,8 +61,6 @@ public class LoanController implements ActionListener, FocusListener{
         
         // Acciones que se debe realizar al principio
         setDatePickers();
-        
-        // this.loanView.ReturnDatePicker.setDate(date);
         if (Main.Administrator != null) {
             // Se pone en el panel el nombre del administrador logueado
             this.loanView.lblAutorize.setText(Main.Administrator.getNames() + " " + Main.Administrator.getLastNames()); 
@@ -89,10 +90,12 @@ public class LoanController implements ActionListener, FocusListener{
     
     private void setDatePickers(){
         Calendar today = Calendar.getInstance();
-        this.loanView.LoanDatePicker.setDate(today.getTime());
+        this.loanView.LoanDatePicker.setDate(today.getTime());   
+        this.loanView.LoanDatePicker.setEnabled(false);
         Calendar returnDay = Calendar.getInstance();
         returnDay.add(Calendar.DATE, 2);
         this.loanView.ReturnDatePicker.setDate(returnDay.getTime());
+        this.loanView.ReturnDatePicker.setMinSelectableDate(returnDay.getTime());
     }
     
     // Establece el formulario a sus valores por defecto

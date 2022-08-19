@@ -156,7 +156,6 @@ public class ReturnView extends javax.swing.JPanel {
         addReturn.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 460, -1, -1));
 
         lbLibrarianSender.setFont(new java.awt.Font("Roboto", 0, 18)); // NOI18N
-        lbLibrarianSender.setText("XXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
         addReturn.add(lbLibrarianSender, new org.netbeans.lib.awtextra.AbsoluteConstraints(140, 460, -1, -1));
         addReturn.add(lblLibrarianId, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 500, -1, -1));
 
