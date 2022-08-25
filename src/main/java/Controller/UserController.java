@@ -195,7 +195,7 @@ public class UserController implements ActionListener{
             
             // Para Agregar un nuevo usuario
             if (operation.equals("Agregar un nuevo usuario")) {
-                if(userDAO.registerUser(user)){
+                if(userDAO.subscribe(user)){
                     this.closeAddEdit();
                     this.cleanTable(this.userView.tableUsers);
                     this.toList(this.userView.tableUsers);
@@ -265,7 +265,7 @@ public class UserController implements ActionListener{
                 int ControlNumber_ = (int) userView.tableUsers.getModel().getValueAt(userView.tableUsers.getSelectedRow(), 0);
                 user.setControlNumber(ControlNumber_);
                 
-                if(userDAO.deleteUser(user)){
+                if(userDAO.unsubscribe(user)){
                     JOptionPane.showMessageDialog(null, "Usuario eliminado correctamente.");
                     this.cleanTable(this.userView.tableUsers);
                     this.toList(this.userView.tableUsers);

@@ -52,7 +52,7 @@ public class BookController implements ActionListener{
     // Establece los elementos de la tabla principal ===========================
     public void getAllBooks(JTable Table){ 
         modelo = (DefaultTableModel) Table.getModel();
-        List<Book> books = bookDAO.toList();
+        List<Book> books = bookDAO.getLibrary();
         Object[] bookObj = new Object[13];
         
         for (int i = 0; i < books.size(); i++) {
@@ -178,7 +178,7 @@ public class BookController implements ActionListener{
     // Le pasa la informacion de libro al Jframe secundario ====================
     public void setBibliography(int row, JTable Table){
         modelo = (DefaultTableModel) Table.getModel();
-        book = bookDAO.getBook((Long) modelo.getValueAt(row, 0));
+        book = bookDAO.getInfo((Long) modelo.getValueAt(row, 0));
         
         addEditBook.txtISBN.setText(Long.toString(book.getISBN()));
         System.out.println(book.getISBN());
@@ -293,14 +293,16 @@ public class BookController implements ActionListener{
         if (e.getSource() == bookView.btnDelete) {             
             if (bookView.tableBooks.getSelectedRow() >= 0 && JOptionPane.showConfirmDialog(null, "¿Desea eleminar el elemento seleccionado?") == 0) {
                 Long ISBN = (Long) bookView.tableBooks.getModel().getValueAt(bookView.tableBooks.getSelectedRow(), 0);
-                
-                if(bookDAO.delete(ISBN)){
+
+                try{
+                    bookDAO.delete(ISBN);
                     this.cleanTable(this.bookView.tableBooks);
                     this.getAllBooks(this.bookView.tableBooks);
                     JOptionPane.showMessageDialog(null, "Libro eliminado correctamente.");
-                } else {
-                    JOptionPane.showMessageDialog(null, "Hubo un problema al eliminar el ejemplar.");
+                } catch (Exception del) {
+                    JOptionPane.showMessageDialog(null, "Hubo un problema al eliminar el ejemplar," + del.getMessage());
                 }
+
             } else {
                 JOptionPane.showMessageDialog(null, "Por favor, seleccione una fila.");
             } 

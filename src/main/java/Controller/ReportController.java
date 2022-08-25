@@ -11,16 +11,12 @@ import Model.DAO.LoanDAO;
 import View.ReportView;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import javax.swing.JOptionPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
@@ -52,10 +48,11 @@ public class ReportController implements ActionListener, PropertyChangeListener 
         // Acciones que deben ocurrir por defecto
         this.reportView.StartDatePicker.setMaxSelectableDate(new Date());
         this.reportView.FinishDatePicker.setMaxSelectableDate(new Date());
-        this.getAllLoans(this.reportView.LoansTable);
+        this.setAllLoans(this.reportView.LoansTable);
+        //searchByRange();
     }
     
-    public void getAllLoans(JTable Table){ 
+    public void setAllLoans(JTable Table){ 
         DefaultTableModel modelo = (DefaultTableModel) Table.getModel();
         List<Object[]> loans = loanDAO.getAllLoans();
         for (Object[] loan : loans) {
@@ -65,7 +62,7 @@ public class ReportController implements ActionListener, PropertyChangeListener 
     }
     
     // SOBRECARGA: Para espesificar el rango de fechas 
-    public void getAllLoans(JTable Table, java.sql.Date start, java.sql.Date end){
+    public void setAllLoans(JTable Table, Calendar start, Calendar end){
         DefaultTableModel modelo = (DefaultTableModel) Table.getModel();
         List<Object[]> loans = loanDAO.getAllLoans(start, end);
         for (Object[] loan_range : loans) {
@@ -74,7 +71,7 @@ public class ReportController implements ActionListener, PropertyChangeListener 
         reportView.LoansTable.setModel(modelo);
     }
     
-    public void getLoansByState(JTable Table, boolean delivery){ 
+    public void setLoansByState(JTable Table, boolean delivery){
         DefaultTableModel modelo = (DefaultTableModel) Table.getModel();
         List<Object[]> loans = loanDAO.getLoansByDelivery(delivery);
         for (Object[] loan : loans) {
@@ -83,7 +80,7 @@ public class ReportController implements ActionListener, PropertyChangeListener 
         reportView.LoansTable.setModel(modelo);
     }
     
-    public void getLoansByState(JTable Table, boolean delivery, Calendar start, Calendar end){ 
+    public void setLoansByState(JTable Table, boolean delivery, Calendar start, Calendar end){
         DefaultTableModel modelo = (DefaultTableModel) Table.getModel();
         List<Object[]> loans = loanDAO.getLoansByDelivery(delivery, start, end);
         for (Object[] loan : loans) {
@@ -102,23 +99,35 @@ public class ReportController implements ActionListener, PropertyChangeListener 
     }
     
     private void searchByRange(){ 
-        if ((reportView.StartDatePicker.getCalendar()!=null) && (reportView.FinishDatePicker.getCalendar()!=null)) {
-            try {
-                java.sql.Date start = new java.sql.Date(reportView.StartDatePicker.getCalendar().getTimeInMillis());
-                java.sql.Date end = new java.sql.Date(reportView.FinishDatePicker.getCalendar().getTimeInMillis());
+        try {
+            Calendar start = reportView.StartDatePicker.getCalendar();
+            Calendar end = reportView.FinishDatePicker.getCalendar();
+            
+            if( ((start!=null) && (end==null)) || ((start==null) && (end==null)) || (!start.before(end)) || ((start==null) && (end!=null)) ){ 
+                this.cleanTable(this.reportView.LoansTable);        
                 if (reportView.btnBoth.isSelected()) {
-                    getAllLoans(this.reportView.LoansTable, start, end);
+                    this.setAllLoans(this.reportView.LoansTable);
+                    System.out.println("Ambos");
+                } else if (reportView.btnOnlySlopes.isSelected()) {
+                    this.setLoansByState(this.reportView.LoansTable, false);
+                    System.out.println("Solo pendientes");
                 } else {
-                    System.out.println("Consulta parcial");
-                    getLoansByState(this.reportView.LoansTable, 
-                            reportView.btnOnlyDelivered.isSelected(), // Determina se se quieren solo los entregados
-                            reportView.StartDatePicker.getCalendar(), 
-                            reportView.FinishDatePicker.getCalendar());
+                    this.setLoansByState(this.reportView.LoansTable, true);
+                    System.out.println("Solo Enytregados");
                 }
-            } catch (Exception e) {
-                System.out.println("Error searchByRange: "+e.getMessage());
+            } else { // Entonces si hay fechas validas
+                this.cleanTable(this.reportView.LoansTable);
+                if (reportView.btnBoth.isSelected()) {
+                    this.setAllLoans(this.reportView.LoansTable, start, end);
+                } else if (reportView.btnOnlySlopes.isSelected()) {
+                    this.setLoansByState(this.reportView.LoansTable, false, start, end);
+                } else {
+                    this.setLoansByState(this.reportView.LoansTable, true, start, end);
+                }
             }
-        }
+        } catch (NullPointerException e) {
+            System.out.println("Error searchByRange: "+e.getMessage());
+        } 
     }
     
     @Override
@@ -135,18 +144,11 @@ public class ReportController implements ActionListener, PropertyChangeListener 
             }
         }// ====================================================================
         
-        if (e.getSource() == reportView.btnBoth) {
-            this.cleanTable(this.reportView.LoansTable);
-            this.getAllLoans(this.reportView.LoansTable);
-        }// ====================================================================
-        
-        if (e.getSource() == reportView.btnOnlyDelivered) {
-            this.cleanTable(this.reportView.LoansTable);
-            this.getLoansByState(this.reportView.LoansTable, true);
-        }
-        if (e.getSource() == reportView.btnOnlySlopes) {
-            this.cleanTable(this.reportView.LoansTable);
-            this.getLoansByState(this.reportView.LoansTable, false);
+        // Radio button Group
+        if (e.getSource() == reportView.btnBoth 
+            || e.getSource() == reportView.btnOnlyDelivered 
+            || e.getSource() == reportView.btnOnlySlopes) { 
+                searchByRange(); 
         }
     }
 

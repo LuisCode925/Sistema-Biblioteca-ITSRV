@@ -6,8 +6,6 @@
 package View;
 
 import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
-
 /**
  *
  * @author Luis
@@ -49,13 +47,30 @@ public class ReportView extends javax.swing.JPanel {
         btnOnlySlopes = new javax.swing.JRadioButton();
         btnBoth = new javax.swing.JRadioButton();
         BooksTab = new javax.swing.JPanel();
-        CareersTab = new javax.swing.JPanel();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        TopBooksTable = new javax.swing.JTable();
+        jLabel3 = new javax.swing.JLabel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        MoreActiveCareersTable = new javax.swing.JTable();
+        jLabel4 = new javax.swing.JLabel();
+        jSeparator1 = new javax.swing.JSeparator();
+        jSeparator2 = new javax.swing.JSeparator();
+        jSeparator3 = new javax.swing.JSeparator();
+        jLabel2 = new javax.swing.JLabel();
+        jSeparator5 = new javax.swing.JSeparator();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        MostPenalizedUsersTable = new javax.swing.JTable();
         UsersTab = new javax.swing.JPanel();
+        jLabel1 = new javax.swing.JLabel();
+        jSeparator4 = new javax.swing.JSeparator();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        BestUsersTable = new javax.swing.JTable();
 
         setBackground(new java.awt.Color(255, 255, 255));
         setMaximumSize(new java.awt.Dimension(1000, 750));
         setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
+        LoansTab.setFont(new java.awt.Font("Roboto", 0, 18)); // NOI18N
         LoansTab.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         LoansTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -117,27 +132,141 @@ public class ReportView extends javax.swing.JPanel {
         LoansTab.add(btnBoth, new org.netbeans.lib.awtextra.AbsoluteConstraints(390, 680, -1, -1));
 
         reportsMenu.addTab("Prestamos", LoansTab);
-        reportsMenu.addTab("Libros Mas Solicitados", BooksTab);
-        reportsMenu.addTab("Por Carrera", CareersTab);
-        reportsMenu.addTab("Usuarios mas Activos", UsersTab);
+
+        BooksTab.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        TopBooksTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "ISBN", "No. Prestramos"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Long.class, java.lang.Object.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        jScrollPane2.setViewportView(TopBooksTable);
+
+        BooksTab.add(jScrollPane2, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 80, 450, 610));
+
+        jLabel3.setFont(new java.awt.Font("Roboto", 0, 24)); // NOI18N
+        jLabel3.setText("Carreras más Activas");
+        BooksTab.add(jLabel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 30, -1, -1));
+
+        MoreActiveCareersTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "Carrera", "Total Prestamos "
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.String.class, java.lang.Object.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        jScrollPane3.setViewportView(MoreActiveCareersTable);
+
+        BooksTab.add(jScrollPane3, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 80, 450, 220));
+
+        jLabel4.setFont(new java.awt.Font("Roboto", 0, 24)); // NOI18N
+        jLabel4.setText("Libros más Solicitados");
+        BooksTab.add(jLabel4, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 30, -1, -1));
+        BooksTab.add(jSeparator1, new org.netbeans.lib.awtextra.AbsoluteConstraints(40, 60, 290, 10));
+        BooksTab.add(jSeparator2, new org.netbeans.lib.awtextra.AbsoluteConstraints(520, 60, -1, -1));
+        BooksTab.add(jSeparator3, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 60, 270, 10));
+
+        jLabel2.setFont(new java.awt.Font("Roboto", 0, 24)); // NOI18N
+        jLabel2.setText("Usuarios más multados");
+        BooksTab.add(jLabel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 320, -1, -1));
+        BooksTab.add(jSeparator5, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 350, 300, 10));
+
+        MostPenalizedUsersTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "No. Control", "Prestamos Activos", "Total Multas"
+            }
+        ));
+        jScrollPane4.setViewportView(MostPenalizedUsersTable);
+
+        BooksTab.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 370, -1, 320));
+
+        reportsMenu.addTab("Top Libros/ Top Carreras", BooksTab);
+
+        UsersTab.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+
+        jLabel1.setFont(new java.awt.Font("Roboto", 0, 24)); // NOI18N
+        jLabel1.setText("Ususarios con más prestamos en el periodo");
+        UsersTab.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 20, -1, -1));
+        UsersTab.add(jSeparator4, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 50, 560, 10));
+
+        BestUsersTable.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+
+            },
+            new String [] {
+                "No. Control", "Carrera", "Nombre Completo", "Total de Prestamos", "Total Multas"
+            }
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.Boolean.class, java.lang.Object.class, java.lang.Integer.class, java.lang.Double.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
+        jScrollPane5.setViewportView(BestUsersTable);
+
+        UsersTab.add(jScrollPane5, new org.netbeans.lib.awtextra.AbsoluteConstraints(30, 70, 930, 610));
+
+        reportsMenu.addTab("Top Usuarios", UsersTab);
 
         add(reportsMenu, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 1000, 750));
     }// </editor-fold>//GEN-END:initComponents
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTable BestUsersTable;
     public javax.swing.JPanel BooksTab;
-    public javax.swing.JPanel CareersTab;
     public com.toedter.calendar.JDateChooser FinishDatePicker;
     public javax.swing.JPanel LoansTab;
     public javax.swing.JTable LoansTable;
+    private javax.swing.JTable MoreActiveCareersTable;
+    private javax.swing.JTable MostPenalizedUsersTable;
     public com.toedter.calendar.JDateChooser StartDatePicker;
+    private javax.swing.JTable TopBooksTable;
     public javax.swing.JPanel UsersTab;
     public javax.swing.JRadioButton btnBoth;
     public javax.swing.JButton btnExportTab1;
     public javax.swing.JRadioButton btnOnlyDelivered;
     public javax.swing.JRadioButton btnOnlySlopes;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JSeparator jSeparator3;
+    private javax.swing.JSeparator jSeparator4;
+    private javax.swing.JSeparator jSeparator5;
     private javax.swing.JLabel lblFinishDate;
     private javax.swing.JLabel lblStartDate;
     private javax.swing.JLabel lblTitleTab1;

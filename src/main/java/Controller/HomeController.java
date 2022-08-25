@@ -85,10 +85,10 @@ public class HomeController implements ActionListener {
                 lib.setPassword(passwd);
 
             // El Administrador se encuentra en la base de datos
-            if (libDAO.validateLibrarian(lib)!= null && !nickname.equals("") && !passwd.equals("")) {
+            if (libDAO.validate(lib)!= null && !nickname.equals("") && !passwd.equals("")) {
 
                 // Se establece que el usuario logueado como administrador
-                Main.Administrator = libDAO.validateLibrarian(lib);
+                Main.Administrator = libDAO.validate(lib);
 
                 // Se muestran las etiquetas para mustrar el usuario logueado
                 homeView.lblWelcome.setVisible(true);
@@ -172,10 +172,10 @@ public class HomeController implements ActionListener {
         if(pass != null) lib.setPassword(getHash(pass.getBytes(), "SHA-256"));
         
         // El Administrador se encuentra en la base de datos
-        if (libDAO.validateLibrarian(lib)!= null && homeView.txtLoginNickName.getText() != null && pass != null) {
+        if (libDAO.validate(lib)!= null && homeView.txtLoginNickName.getText() != null && pass != null) {
             
             // Se establece que el usuario logueado como administrador
-            Main.Administrator = libDAO.validateLibrarian(lib);
+            Main.Administrator = libDAO.validate(lib);
             
             // Se muestran las etiquetas para mustrar el usuario logueado
             homeView.lblWelcome.setVisible(true);

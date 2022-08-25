@@ -7,7 +7,6 @@ package Model.DAO;
 import Model.ConnectionDB;
 import Model.Loan;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -110,7 +109,6 @@ public class LoanDAO extends ConnectionDB {
         ResultSet rs = null;
         
         List<Object[]> datos = new ArrayList<>();
-        //String sql = "SELECT * FROM loans";
         String sql = "SELECT loans.Id, loans.ControlNumber, loans.ISBN, loans.LoanDate, loans.ReturnDate, loans.Delivered, loans.Renovations, loans.PenaltyFee, "
                 + "CONCAT(librarians.Names, \" \", librarians.LastNames) as Autorize, CONCAT(librarians.Names, \" \", librarians.LastNames) as Receiver "
                 + "FROM loans INNER JOIN librarians ON loans.Autorize=librarians.Id";
@@ -335,14 +333,16 @@ public class LoanDAO extends ConnectionDB {
         return datos;
     }
     
-    // Obtiene todos los prestamos de la Base de Datos que vencen HOY
+    /**
+     * Using the CURRENT_DATE() (today)
+     * @return a list of Loans these match in the field ReturnDate
+     */
     public List<Loan> getLoansToFinalize(){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
         
         List<Loan> datos = new ArrayList<>();
-        // Solo se necesitan 3 campos para la tabla: Id, ISBN y Numero de Control
         String sql = "SELECT Id, ISBN, ControlNumber FROM loans WHERE (ReturnDate = CURRENT_DATE()) AND (Delivered=false)";
         
         try {
@@ -351,11 +351,8 @@ public class LoanDAO extends ConnectionDB {
             
             while (rs.next()) {
                 
-                // Calendar LoanDate = Calendar.getInstance();
-                // Calendar ReturnDate = Calendar.getInstance();
-      
                 Loan loan = new Loan(0, 0, Long.MIN_VALUE, null, null, null, false, Short.MIN_VALUE, 0, 0, 0);
-                
+      
                 // Se comineza desde la columna 1 no del 0.
                 loan.setId(rs.getInt(1));
                 loan.setISBN(rs.getLong(2));
@@ -367,8 +364,12 @@ public class LoanDAO extends ConnectionDB {
             System.out.println("Error getLoansToFinalize(): "+e.getMessage());
         }
         return datos;
-    } //==============================================================
+    }
     
+    /**
+     * Using the field ReturnDate compare if already expired
+     * @return a list of Loans with a Penalty
+     */
     public List<Loan> getLoansExpired(){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -399,7 +400,128 @@ public class LoanDAO extends ConnectionDB {
             System.out.println("Error getLoansExpired(): "+e.getMessage());
         }
         return datos;
-    }//===================================================================
+    }
+    
+    public List<Object[]> getTopBooks(){
+        PreparedStatement ps = null;
+        Connection con = getConnection();
+        ResultSet rs = null;
+        
+        List<Object[]> books = new ArrayList<>();
+        String sql = "SELECT ISBN, COUNT(ISBN) FROM loans WHERE Delivered=true GROUP BY ISBN";
+        
+        try {
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+
+                Object[] topBook = new Object[2];
+                
+                topBook[0] = rs.getLong(1); // Obtiene el ISBN
+                topBook[1] = rs.getInt(2); // Numero de veces que fue solicitado
+               
+                books.add(topBook);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getTopBooks: " + e.getMessage());
+        }
+        return books;
+    }
+    
+    public List<Object[]> getMoreActiveCareers(){
+        PreparedStatement ps = null;
+        Connection con = getConnection();
+        ResultSet rs = null;
+        
+        List<Object[]> books = new ArrayList<>();
+        String sql = "SELECT collegecareers.Carrer, COUNT(SUBSTRING(ControlNumber, 3, 3)) AS no_loans "
+                + "FROM loans "
+                + "INNER JOIN `collegecareers` ON SUBSTRING(ControlNumber, 3, 3)=collegecareers.Code "
+                + "WHERE Delivered=true GROUP BY collegecareers.Carrer";
+        
+        try {
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+
+                Object[] topBook = new Object[2];
+                
+                topBook[0] = rs.getString(1); // Obtiene el nombre de la carrera en cuestion 
+                topBook[1] = rs.getInt(2); // Contador de los prestamos
+               
+                books.add(topBook);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getMoreActiveCareers: " + e.getMessage());
+        }
+        return books;
+    }
+    
+    public List<Object[]> getMostPenalizedUsers(){
+        PreparedStatement ps = null;
+        Connection con = getConnection();
+        ResultSet rs = null;
+        
+        List<Object[]> books = new ArrayList<>();
+        String sql = "SELECT ControlNumber, COUNT(ISBN) AS 'Prestamos Activos', SUM(PenaltyFee) AS 'Total Multas 'FROM `loans` GROUP BY ControlNumber";
+        // TODO falta el where entrega este en falso y el limite entre fechas
+        
+        try {
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+
+                Object[] topBook = new Object[2];
+                
+                topBook[0] = rs.getInt(1); // Obtiene el numero de control del usuario
+                topBook[1] = rs.getInt(2); // Contador de los prestamos
+                topBook[1] = rs.getDouble(3); // Acumulador de la multa
+               
+                books.add(topBook);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getMostPenalizedUsers: " + e.getMessage());
+        }
+        return books;
+    }
+    
+    public List<Object[]> getBestUsers(){
+        PreparedStatement ps = null;
+        Connection con = getConnection();
+        ResultSet rs = null;
+        
+        List<Object[]> books = new ArrayList<>();
+        String sql = "SELECT loans.ControlNumber, collegecareers.Carrer AS 'Carrera', "
+                + "CONCAT(users.Names, \" \",users.LastNames) AS 'Nombre Completo', "
+                + "COUNT(ISBN) 'Total Prestamos', SUM(PenaltyFee) AS 'Total de multas' "
+                + "FROM `loans` "
+                + "INNER JOIN collegecareers ON SUBSTRING(ControlNumber, 3, 3)=collegecareers.Code "
+                + "INNER JOIN users ON loans.ControlNumber=users.ControlNumber;";
+        // TODO order by 
+        try {
+            ps = con.prepareStatement(sql);
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+
+                Object[] topUser = new Object[5];
+                
+                topUser[0] = rs.getInt(1); // No. Control
+                topUser[1] = rs.getString(2); // Carrera
+                topUser[2] = rs.getString(3); // Nombre Completo
+                topUser[3] = rs.getInt(4); // Total Prestamos
+                topUser[4] = rs.getDouble(5); // Total Multas 
+               
+                books.add(topUser);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getBestUsers: " + e.getMessage());
+        }
+        return books;
+    }
     
     // Comprueba que el usuario pueda realizar un prestamo
     public List<Long> isFullLoans(int ControlNumber){

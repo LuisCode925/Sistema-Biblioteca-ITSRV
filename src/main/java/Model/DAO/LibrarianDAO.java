@@ -22,11 +22,17 @@ import javax.swing.JOptionPane;
 // Extiende del archivo de conexion para no tener que instanciarlo
 public class LibrarianDAO extends ConnectionDB {
     
-    // Registrar
+    /**
+     * This function is to INSERT a object Librarian in the Data Base
+     * @param lib is the object with the data from Sing UP form
+     * @return true if the operatios is successful
+     */
     public boolean signUp(Librarian lib){
         PreparedStatement ps = null;
         Connection con = getConnection();
-        String SQL = "INSERT INTO librarians (Names, LastNames, NickName, Email, Password) VALUES (?, ?, ?, ?, ?)";
+
+        String SQL = "INSERT INTO librarians (Id, Names, LastNames, NickName, Email, Password) VALUES (null, ?, ?, ?, ?, ?)";
+        
         try {
             ps = con.prepareStatement(SQL);
             
@@ -37,8 +43,8 @@ public class LibrarianDAO extends ConnectionDB {
             ps.setString(4, lib.getEmail());
             ps.setString(5, lib.getPassword());
             
-            
             ps.execute();
+            
             JOptionPane.showMessageDialog(null, "Nuevo administrador de la biblioteca registrado.");
             return true;
         } catch (SQLException e) {
@@ -53,12 +59,16 @@ public class LibrarianDAO extends ConnectionDB {
         }
     }
     
-    // Buscar
-    public Librarian validateLibrarian(Librarian lib){
-        
+    /**
+     * With the username and the password determinate if the Admin exists
+     * @param lib only is necessary the username and the encrypted password 
+     * @return an object with the 
+     */
+    public Librarian validate(Librarian lib){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
+        
         String SQL = "SELECT * FROM librarians WHERE NickName=? AND Password=?";
         
         try {
@@ -79,12 +89,16 @@ public class LibrarianDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.err.println(e);
+            return null;
         }
         return null;
     } 
         
-    // Obtiene todos los usuarios de la Base de Datos.
-    public List getAllNicknames(){
+    /**
+     * 
+     * @return a list of the nicknames of the active users 
+     */
+    public List<String> getAllNicknames(){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;

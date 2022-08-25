@@ -22,13 +22,16 @@ import javax.swing.JOptionPane;
  */
 public class UserDAO extends ConnectionDB {
     
-    // Obtiene solo un usuario de la Base de Datos.
+    /**
+     * 
+     * @param ControlNumber that identifies the user: students and professors
+     * @return all the data about the user.
+     */
     public User getUser(int ControlNumber){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
         
-        User user = new User(0, "", "", null, "", 0, "", false);
         String sql = "SELECT * FROM users WHERE ControlNumber=?";
         
         try {
@@ -36,7 +39,9 @@ public class UserDAO extends ConnectionDB {
             ps.setInt(1, ControlNumber);
             rs = ps.executeQuery();
             
-            if(rs.next()) {                
+            User user = new User(0, "", "", null, "", 0, "", false);
+            
+            while(rs.next()) {                
                 // Se comineza desde la columna 1 no del 0.
                 user.setControlNumber(rs.getInt(1));
                 user.setNames(rs.getString(2));
@@ -46,37 +51,48 @@ public class UserDAO extends ConnectionDB {
                 user.setCollegeCareer(rs.getInt(6));
                 user.setAddress(rs.getString(7));
                 user.setBanned(rs.getBoolean(8));
+                
+                return user;
             }
         } catch (SQLException e) {
             System.out.println(e);
         }
-        return user;
+        return null;
     }
     
-      public boolean isBanned(int ControlNumber){
+    /**
+     * 
+     * @param ControlNumber that identifies the user: students and professors
+     * @return if can get more books or is restricted for Penalty
+     */
+    public boolean isBanned(int ControlNumber){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
         
         String sql = "SELECT Banned FROM users WHERE ControlNumber=?";
-        boolean Banned = false;
+       
         try {
             ps = con.prepareStatement(sql);
             ps.setInt(1, ControlNumber);
             rs = ps.executeQuery();
             
-            if(rs.next()) {                
-                // Se comineza desde la columna 1 no del 0.
-                Banned = rs.getBoolean(1);
+            if (rs.next()) {                
+                return rs.getBoolean(1);
+            } else {
+                throw new IllegalArgumentException("No Existe el Numero de Control.");   
             }
         } catch (SQLException e) {
-            System.out.println(e);
+            System.out.println("Error isBanned: "+e.getErrorCode());
         }
-        return Banned;
+        return true;
     }
         
-    // Obtiene todos los usuarios de la Base de Datos.
-    public List getAllUsers(){
+    /**
+     * 
+     * @return a list with all the Users form the data base. 
+     */
+    public List<User> getAllUsers(){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
@@ -110,7 +126,10 @@ public class UserDAO extends ConnectionDB {
         return datos;
     }
     
-    // Obtiene solo el campo del numero de control de la Base de Datos.
+    /**
+     * Get all the control numbers for the autocomplete function 
+     * @return a list of string with Control Numbers.
+     */
     public List<String> getAllControlNumbers(){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -132,6 +151,10 @@ public class UserDAO extends ConnectionDB {
         return datos;
     }
     
+    /**
+     * Integer: id, String: career name
+     * @return a map for join the user table
+     */
     public Map<Integer, String>  getAllCollegeCareers(){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -147,14 +170,19 @@ public class UserDAO extends ConnectionDB {
             while (rs.next()) {
                 careers.put(rs.getInt(1), rs.getString(2));
             }
+            return careers;
         } catch (SQLException e) {
             System.out.println(e);
         }
-        return careers;
+        return null;
     }
     
-    // Elimina un usuario de la base de datos
-    public boolean deleteUser(User user){
+    /**
+     * Used to delete a user from the date base
+     * @param user to get the Control Number
+     * @return true if the account is deleted successful
+     */
+    public boolean unsubscribe(User user){
         PreparedStatement ps = null;
         Connection con = getConnection();
         String SQL = "DELETE FROM users WHERE ControlNumber=?";
@@ -165,15 +193,20 @@ public class UserDAO extends ConnectionDB {
             return true;
         } catch (SQLException e) {
             System.err.println(e);
-            return false;
         }
+        return false;
     }
     
-    // Registra un usuario en la base de datos
-    public boolean registerUser(User user){
+     /**
+     * Used to insert a user from the date base
+     * @param user to all the data from the Object
+     * @return true if the account to register is OK
+     */
+    public boolean subscribe(User user){
         PreparedStatement ps = null;
         Connection con = getConnection();
-        String SQL = "INSERT INTO users (`ControlNumber`, `Names`, `LastNames`, `Phone`, `Email`, `CollegeCareer`, `Address`, `Banned`) VALUES (?, ?, ?, ?, ?, ?, ?, false)";
+        String SQL = "INSERT INTO users (ControlNumber, Names, LastNames, Phone, Email, CollegeCareer, Address, Banned) VALUES (?, ?, ?, ?, ?, ?, ?, false)";
+        
         try {
             ps = con.prepareStatement(SQL);
             
@@ -190,11 +223,10 @@ public class UserDAO extends ConnectionDB {
         } catch (SQLException e) {
             switch (e.getErrorCode()) {
                 case 1062: JOptionPane.showMessageDialog(null, "El numero de control ingresado ya esta en uso.");break;
-                default:
-                    throw new AssertionError();
+                default: throw new AssertionError();
             }
-            return false;
         }
+        return false;
     }
     
     // Actualiza la informacion del usuario

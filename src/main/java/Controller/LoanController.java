@@ -125,7 +125,7 @@ public class LoanController implements ActionListener, FocusListener{
     }
     
     private void loadInfoBook(Long ISBN){
-        Book book = loanBookDAO.getBook(ISBN);
+        Book book = loanBookDAO.getInfo(ISBN);
         this.loanView.lblBookTitle.setText(book.getTitle());
         this.loanView.lblBookAuthor.setText(book.getAuthor());
         this.loanView.lblBookEditorial.setText(book.getEditorial());

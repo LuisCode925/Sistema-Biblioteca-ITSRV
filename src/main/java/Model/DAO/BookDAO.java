@@ -20,13 +20,14 @@ import java.util.GregorianCalendar;
  * @author Luis
  */
 public class BookDAO extends ConnectionDB {
-    
-    // Se retorna un libros para el jframe de edicion =======================
-    public Book getBook(Long ISBN){
+
+    // Paso los test
+    public Book getInfo(Long ISBN){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
-        
+
+
         Calendar YearPublication = new GregorianCalendar();
         Book book = new Book(0, "", "", "", 0, YearPublication, 0, 0, 0, "", "", 0, 0);
         String sql = "SELECT * FROM books WHERE ISBN=?";
@@ -36,8 +37,7 @@ public class BookDAO extends ConnectionDB {
             ps.setLong(1, ISBN);
             rs = ps.executeQuery();
             
-            while (rs.next()) {
-             
+            if (rs.next()) {
                 
                 // Se comineza desde la columna 1 no del 0.
                 book.setISBN(rs.getLong(1));
@@ -58,16 +58,16 @@ public class BookDAO extends ConnectionDB {
                 book.setLanguage(rs.getString(11));
                 book.setStock(rs.getInt(12));
                 book.setBFree(rs.getInt(13));
-                
-
+            } else {
+                throw new NullPointerException("No se encontro el libros con ese ISBN " + ISBN);
             }
         } catch (SQLException e) {
-            System.out.println(e.getMessage());
+            System.out.println("Error getInfo: "+e.getMessage());
         }
         return book;
     }
-    
-    // Mustra el numero de ejemplares que estan disponibles para prestar
+
+    // Paso los test
     public int getBooksAvalible(Long ISBN){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -81,18 +81,19 @@ public class BookDAO extends ConnectionDB {
             ps.setLong(1, ISBN);
             rs = ps.executeQuery();
            
-            while (rs.next()) {                
+            if (rs.next()) {
                 BFree = rs.getInt(1);
+            } else {
+                throw new NullPointerException("No se han encontrado resultados.");
             }
-            return BFree;
         } catch (SQLException e) {
             System.out.println("Error en getBooksAvalible: "+e.getMessage());
         }
-        return Integer.MIN_VALUE;
+        return BFree;
     }
     
-    // Se retorna una lista de los libros para la tabla. =======================
-    public List toList(){
+    // Paso los test
+    public List<Book> getLibrary(){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
@@ -103,7 +104,8 @@ public class BookDAO extends ConnectionDB {
         try {
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
-            
+
+            if(rs == null) return null;
             while (rs.next()) {
                 Calendar YearPublication = new GregorianCalendar();
                 Book book = new Book(0, "", "", "", 0, YearPublication, 0, 0, 0, "", "", 0, 0);
@@ -135,7 +137,8 @@ public class BookDAO extends ConnectionDB {
         }
         return datos;
     }
-    
+
+    // Paso los test
     public List<String> getAllISBN(){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -147,7 +150,8 @@ public class BookDAO extends ConnectionDB {
         try {
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
-            
+
+            if(rs == null) return null;
             while (rs.next()) {
                 String s = Long.toString(rs.getLong(1));
                 datos.add(s);
@@ -157,27 +161,31 @@ public class BookDAO extends ConnectionDB {
         }
         return datos;
     }
-    
-    // Eliminar ================================================================
+
+    // Falta informacion y checar el borrado de las llaves foraneas
+    // TODO REfactorizar para manejar correctamente las excepciones
     public boolean delete(Long book){
         PreparedStatement ps = null;
         Connection con = getConnection();
+
         String SQL = "DELETE FROM books WHERE ISBN=?";
+
         try {
             ps = con.prepareStatement(SQL);
             ps.setLong(1, book);
             ps.execute();
             return true;
-        } catch (SQLException e) {
-            System.err.println("Error al eliminar: " + e);
+        } catch (Exception e) {
+            System.out.println("Error delete: " + e);
             return false;
         }
     }
     
-    // Registrar
+    // Paso el test
     public boolean addToInventory(Book book){
         PreparedStatement ps = null;
         Connection con = getConnection();
+
         String SQL = "INSERT INTO books (ISBN, Title, Author, Editorial, Edition, YearPublication, Shelf, Section, Department, Category, Language, Stock, BFree) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try {
             ps = con.prepareStatement(SQL);
@@ -195,16 +203,16 @@ public class BookDAO extends ConnectionDB {
             ps.setString(11, book.getLanguage());
             ps.setInt(12, book.getStock());
             ps.setInt(13, book.getBFree());
-            
+
             ps.execute();
             return true;
         } catch (SQLException e) {
-            System.err.println(e);
+            System.err.println(e.getMessage());
             return false;
         }
-    } // FIN Registrar
+    }
     
-    // Modificar
+    // Paso el test
     public boolean updateBibliography(Book book){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -233,10 +241,10 @@ public class BookDAO extends ConnectionDB {
             System.err.println(e);
             return false;
         }
-    } // FIN Modificar */
+    }
     
-    // Buscar ==================================================================
-    public List searchByColumn(String column, String word){
+    // Paso el test
+    public List<Book> searchByColumn(String column, String word){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
@@ -264,10 +272,7 @@ public class BookDAO extends ConnectionDB {
                 
                 YearPublication.setTime(rs.getDate(6));
                 book.setYearPublication(YearPublication);
-                
-                //YearPublication.set(Calendar.YEAR, rs.getDate(6).getYear());
-                //book.setYearPublication(YearPublication);
-                
+
                 book.setShelf(rs.getInt(7));
                 book.setSection(rs.getInt(8));
                 book.setDepartment(rs.getInt(9));

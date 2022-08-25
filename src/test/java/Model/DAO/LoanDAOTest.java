@@ -99,4 +99,17 @@ public class LoanDAOTest {
         List<Object[]> loans = loanDAO.getLoansByDelivery(false, start, end);
         assertEquals(0, loans.size());
     }
+    
+    @Test
+    public void getLoansToFinalize_Today(){
+        List<Loan> loans = loanDAO.getLoansToFinalize();
+        assertEquals(1, loans.size());
+        // Cambiar la fecha a hoy en phpMyAdmin
+    }
+    
+    @Test
+    public void getLoansExpired(){
+        List<Loan> loans = loanDAO.getLoansExpired();
+        assertEquals(1, loans.size());
+    }
 }
