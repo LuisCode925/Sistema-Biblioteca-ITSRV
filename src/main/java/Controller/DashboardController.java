@@ -109,7 +109,7 @@ public class DashboardController implements ActionListener, FocusListener {
     private void loanController(){
         Calendar LoanDate = Calendar.getInstance();
         Calendar ReturnDate = Calendar.getInstance();
-        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, null, true, Short.MIN_VALUE, 0, 0, 0);
+        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate,true, Short.MIN_VALUE, 0, 0, 0);
         LoanDAO loanDAO = new LoanDAO();
         UserDAO userDAO = new UserDAO();
         BookDAO bookDAO = new BookDAO();
@@ -120,7 +120,7 @@ public class DashboardController implements ActionListener, FocusListener {
     private void reportController(){
         Calendar LoanDate = Calendar.getInstance();
         Calendar ReturnDate = Calendar.getInstance();
-        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, null, true, Short.MIN_VALUE, 0, 0, 0);
+        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, true, Short.MIN_VALUE, 0, 0, 0);
         LoanDAO loanDAO = new LoanDAO();
         this.reportView = new ReportView();
         ReportController ctrlReport = new ReportController(loan, loanDAO, reportView);
@@ -129,7 +129,7 @@ public class DashboardController implements ActionListener, FocusListener {
     private void returnController(){
         Calendar LoanDate = Calendar.getInstance();
         Calendar ReturnDate = Calendar.getInstance();
-        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, null, true, Short.MIN_VALUE, 0, 0, 0);
+        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, true, Short.MIN_VALUE, 0, 0, 0);
         LoanDAO loanDAO = new LoanDAO();
         UserDAO userDAO = new UserDAO();
         BookDAO bookDAO = new BookDAO();

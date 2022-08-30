@@ -89,7 +89,7 @@ public class UserDAO extends ConnectionDB {
     }
         
     /**
-     * 
+     * Used to show all user in a table
      * @return a list with all the Users form the data base. 
      */
     public List<User> getAllUsers(){
@@ -153,9 +153,9 @@ public class UserDAO extends ConnectionDB {
     
     /**
      * Integer: id, String: career name
-     * @return a map for join the user table
+     * @return a map for join the user table used in cbox.
      */
-    public Map<Integer, String>  getAllCollegeCareers(){
+    public Map<Integer, String> getAllCollegeCareers(){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
@@ -197,11 +197,11 @@ public class UserDAO extends ConnectionDB {
         return false;
     }
     
-     /**
-     * Used to insert a user from the date base
-     * @param user to all the data from the Object
-     * @return true if the account to register is OK
-     */
+    /**
+    * Used to insert a user from the date base
+    * @param user to all the data from the Object
+    * @return true if the account to register is OK
+    */
     public boolean subscribe(User user){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -229,8 +229,12 @@ public class UserDAO extends ConnectionDB {
         return false;
     }
     
-    // Actualiza la informacion del usuario
-    public boolean updateUserInfo(User user){
+    /**
+     * 
+     * @param user is the Object with teh new information
+     * @return true if the operation is completed successful
+     */
+    public boolean updateInfo(User user){
         PreparedStatement ps = null;
         Connection con = getConnection();
         String SQL = "UPDATE users SET `Names`=?,`LastNames`=?,`Phone`=?,`Email`=?,`CollegeCareer`=?,`Address`=?,`Banned`=? WHERE `ControlNumber`=?";
@@ -255,16 +259,21 @@ public class UserDAO extends ConnectionDB {
         }
     }
     
-    // Banea o desbanea a los usuarios
-    public boolean banUnban(User user){
+    /**
+     * Used only to ban and unban the users
+     * @param ControlNumber is the indentifier of the user
+     * @param state is a boolean true=ban, false=unban
+     * @return true id the operation is completed successful
+     */
+    public boolean banUnban(int ControlNumber, boolean state){
         PreparedStatement ps = null;
         Connection con = getConnection();
         String SQL = "UPDATE users SET `Banned`=? WHERE `ControlNumber`=?";
         try {
             ps = con.prepareStatement(SQL);
                     
-            ps.setBoolean(1, user.isBanned());
-            ps.setInt(2, user.getControlNumber());
+            ps.setBoolean(1, state);
+            ps.setInt(2, ControlNumber);
             
             ps.execute();
             return true;
@@ -274,7 +283,13 @@ public class UserDAO extends ConnectionDB {
         }
     }
     
-    public List searchByColumn(String column, String word){
+    /**
+     * Search using LIKE in the Data Base 
+     * @param column is the name of the column to filter
+     * @param word is the character pattern
+     * @return the results of the search, can be zero.
+     */
+    public List<User> searchByColumn(String column, String word){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
@@ -310,4 +325,5 @@ public class UserDAO extends ConnectionDB {
         }
         return datos;
     } 
+    
 }

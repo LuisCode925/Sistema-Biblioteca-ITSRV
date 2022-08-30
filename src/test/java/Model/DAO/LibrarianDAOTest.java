@@ -7,9 +7,13 @@ package Model.DAO;
 import Controller.HomeController;
 import Model.Librarian;
 import com.github.javafaker.Faker;
-import org.junit.Test;
-import static org.junit.Assert.*;
-import org.junit.Before;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
+
 
 /**
  *
@@ -21,13 +25,15 @@ public class LibrarianDAOTest {
     public LibrarianDAO libDAO;
     public Librarian librarian;
     
-    @Before
+    @BeforeEach
     public void before(){
         faker = new Faker();
         libDAO = new LibrarianDAO();
     }
 
+    @Disabled("Si se quiere probar se deben actualizar los test que dependen del numero de librarians.")
     @Test
+    @DisplayName("Registrar un administrador")
     public void signUpOne() {
         librarian = new Librarian(
             0, //Id
@@ -41,6 +47,34 @@ public class LibrarianDAOTest {
     }
     
     @Test
+    @DisplayName("Informacion del Administrador")
+    public void getInfo(){
+        assertEquals("U925", libDAO.getInfo(1).getNickName());
+    }
+    
+    @Test
+    @DisplayName("Cambiar Nombre")
+    public void updateInfo(){
+        librarian = new Librarian(
+            1, //Id
+            "Mario Luis", // Names
+            "Chávez Martínez", // LastNames
+            "U925", // Nickname
+            "195925luis@gmail.com", // Email
+            HomeController.getHash("925lol".getBytes(), "SHA-256")); // Password
+        
+        assertTrue(libDAO.updateInfo(librarian));
+    }
+    
+    @Disabled("Cambiar el id por el administrador a eliminar")
+    @Test
+    @DisplayName("Borrar Administrador")
+    public void deleteAccount(){
+        assertTrue(libDAO.deleteAccount(17)); // Si falla cambiar el id y getAllNicknames()
+    }
+    
+    @Test
+    @DisplayName("Login Datos Validos")
     public void validateWithTrueData(){
         librarian = new Librarian(
             0, "", "", "Rick O'Shea", "", 
@@ -49,6 +83,7 @@ public class LibrarianDAOTest {
     }
     
     @Test
+    @DisplayName("Login Datos Invalidos")
     public void validateWithFalseData(){
         librarian = new Librarian(
             0, "", "", "Rick O'Shea", "",
@@ -58,7 +93,8 @@ public class LibrarianDAOTest {
     }
     
     @Test
+    @DisplayName("Autocompletado Nickname")
     public void getAllNicknames(){
-        assertEquals(4, libDAO.getAllNicknames().size());
+        assertEquals(6, libDAO.getAllNicknames().size());
     }
 }

@@ -28,7 +28,7 @@ public class LoanDAO extends ConnectionDB {
     public static boolean updatePenaltyFee(){
         PreparedStatement ps = null;
         ConnectionDB con = new ConnectionDB();
-        String SQL = "CALL updatePenaltyFee(@PenaltyFeeValue)";
+        String SQL = "CALL updatePenaltyFee()";
         
         try { 
             ps = con.getConnection().prepareStatement(SQL);
@@ -46,17 +46,17 @@ public class LoanDAO extends ConnectionDB {
      * @param ControlNumber the ID for the users students and profesors
      * @return a loan object that mathces with the params 
      */
-    public Loan getLoan(Long ISBN, int ControlNumber){
+    public Loan getInfo(Long ISBN, int ControlNumber){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
         
         Calendar LoanDate = Calendar.getInstance();
         Calendar ReturnDate = Calendar.getInstance();
-        Calendar lastUpdate = Calendar.getInstance();
         
-        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, lastUpdate, false, Short.MIN_VALUE, 0, 0, 0);
+        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, false, Short.MIN_VALUE, 0, 0, 0);
         
+        //String sql = "SELECT * FROM loans WHERE ISBN=?";
         String sql = "SELECT * FROM loans WHERE (ControlNumber=?) AND (ISBN=?)";
         
         try {
@@ -64,10 +64,9 @@ public class LoanDAO extends ConnectionDB {
             ps.setInt(1, ControlNumber);
             ps.setLong(2, ISBN);
             rs = ps.executeQuery();
-            
-            
-            while (rs.next()) {
-             
+               
+            if (rs.next()) {
+                  
                 // Se comineza desde la columna 1 no del 0.
                 loan.setId(rs.getInt(1));
                 loan.setControlNumber(rs.getInt(2));
@@ -81,19 +80,16 @@ public class LoanDAO extends ConnectionDB {
                 ReturnDate.setTime(rs.getDate(5));
                 loan.setReturnDate(ReturnDate);
                 
-                // sql.date to Calendar
-                lastUpdate.setTime(rs.getDate(6));
-                loan.setLastUpdate(lastUpdate);
+                loan.setDelivered(rs.getBoolean(6));
+                loan.setRenovations(rs.getShort(7));
+                loan.setPenaltyFee(rs.getDouble(8));
                 
-                loan.setDelivered(rs.getBoolean(7));
-                loan.setRenovations(rs.getShort(8));
-                loan.setPenaltyFee(rs.getDouble(9));
-                
-                loan.setAutorize(rs.getInt(10));
-                loan.setReceiver(rs.getInt(11));
+                loan.setAutorize(rs.getInt(9));
+                loan.setReceiver(rs.getInt(10));
               
             }
         } catch (SQLException e) {
+            loan = null;
             System.out.println("Error getLoan: " + e.getMessage());
         }
         return loan;
@@ -351,7 +347,7 @@ public class LoanDAO extends ConnectionDB {
             
             while (rs.next()) {
                 
-                Loan loan = new Loan(0, 0, Long.MIN_VALUE, null, null, null, false, Short.MIN_VALUE, 0, 0, 0);
+                Loan loan = new Loan(0, 0, Long.MIN_VALUE, null, null, false, Short.MIN_VALUE, 0, 0, 0);
       
                 // Se comineza desde la columna 1 no del 0.
                 loan.setId(rs.getInt(1));
@@ -387,7 +383,7 @@ public class LoanDAO extends ConnectionDB {
                 //Calendar LoanDate = Calendar.getInstance();
                 // Calendar ReturnDate = Calendar.getInstance();
                 
-                Loan loan = new Loan(0, 0, Long.MIN_VALUE, null, null, null, false, Short.MIN_VALUE, 0, 0, 0);
+                Loan loan = new Loan(0, 0, Long.MIN_VALUE, null, null, false, Short.MIN_VALUE, 0, 0, 0);
                 
                 // Se comineza desde la columna 1 no del 0.
                 loan.setId(rs.getInt(1));
@@ -401,6 +397,8 @@ public class LoanDAO extends ConnectionDB {
         }
         return datos;
     }
+    
+    //==========================================================================
     
     public List<Object[]> getTopBooks(){
         PreparedStatement ps = null;
@@ -523,8 +521,14 @@ public class LoanDAO extends ConnectionDB {
         return books;
     }
     
-    // Comprueba que el usuario pueda realizar un prestamo
-    public List<Long> isFullLoans(int ControlNumber){
+    //==========================================================================
+    
+    /**
+     * Userd to check if the user can get more loans
+     * @param ControlNumber the identifier of the user
+     * @return a list of the books without deliver (max 43 for students).
+     */
+    public List<Long> getUndelivered(int ControlNumber){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
@@ -545,10 +549,14 @@ public class LoanDAO extends ConnectionDB {
             System.out.println("Error isFullLoans: "+e.getMessage());
         }
         return datos;
-    } //=====================================================
+    }
     
-    // Comprueba que el usuario pueda realizar un prestamo
-    public List<Integer> getBooksByISBN(Long ISBN){
+    /**
+     * Used like counter for each loan without deliver
+     * @param ISBN the unique id for each book
+     * @return a list of the users with a loan of the book.
+     */
+    public List<Integer> getActiveLoans(Long ISBN){
         PreparedStatement ps = null;
         Connection con = getConnection();
         ResultSet rs = null;
@@ -568,13 +576,18 @@ public class LoanDAO extends ConnectionDB {
             System.out.println("Error getBooksByISBN: "+e);
         }
         return datos;
-    }// ======================================================
+    }
     
-    // Elimina un prestamo de la base de datos
+    /**
+     * Used to delete a registry in the database
+     * @param loan object that contains the data (id)
+     * @return true if the operatios is completed successful.
+     */
     public boolean deleteLoan(Loan loan){
-        PreparedStatement ps = null;
+        PreparedStatement ps;
         Connection con = getConnection();
-        String SQL = "DELETE FROM loans WHERE Id=?";
+        String SQL = "DELETE FROM loans WHERE loans.Id=?";
+        
         try {
             ps = con.prepareStatement(SQL);
             ps.setInt(1, loan.getId());
@@ -585,14 +598,20 @@ public class LoanDAO extends ConnectionDB {
             System.err.println("Error deleteLoan: "+e.getMessage());
             return false;
         }
-    } //===================================================================
+    }
     
-    // Registra el prestamo en la base de datos
-    public boolean registerLoan(Loan loan){
-        PreparedStatement ps = null;
+    /**
+     * Used to insert a registry in the database
+     * @param loan object that contains the data
+     * @return true if the operatios is completed successful.
+     */
+    public boolean bookCheckOut(Loan loan){
+        PreparedStatement ps;
         Connection con = getConnection();
         
-        String SQL = "INSERT INTO loans (Id, ControlNumber, ISBN, LoanDate, ReturnDate, lastUpdate, Delivered, Renovations, PenaltyFee, Autorize, Sender) VALUES (null , ?, ?, ?, ?, null, false, 0, 0, ?, null)";
+        String SQL = "INSERT INTO loans (Id, ControlNumber, ISBN, LoanDate, "
+                + "ReturnDate, Delivered, Renovations, PenaltyFee, "
+                + "Autorize, Receiver) VALUES (null , ?, ?, ?, ?, false, 0, 0, ?, null)";
         
         try {
             ps = con.prepareStatement(SQL);
@@ -606,24 +625,24 @@ public class LoanDAO extends ConnectionDB {
             
             // Calendar to sql.date
             java.sql.Date returnDate = new java.sql.Date(loan.getReturnDate().getTimeInMillis());
-            ps.setDate(4, (java.sql.Date) returnDate);
+            ps.setDate(4, returnDate);
             
             ps.setInt(5, loan.getAutorize());
             
             ps.execute();
             return true;
         } catch (SQLException e) {
-            System.err.println("Error registerLoan: "+e.getMessage());
-            return false;
+            System.err.println("Error registerLoan: "+e.getMessage());   
         }
-    } //==================================================================
+        return false;
+    }
     
     // Actualiza la informacion del prestamo
     public boolean updateUserInfo(Loan loan){
         PreparedStatement ps = null;
         Connection con = getConnection();
         
-        String SQL = "UPDATE loans SET ControlNumber=?, ISBN=?, LoanDate=?, ReturnDate=?, Delivered=?, Renovations=?, PenaltyFee=?, Autorize=?, Sender=? WHERE Id=?";
+        String SQL = "UPDATE loans SET ControlNumber=?, ISBN=?, LoanDate=?, ReturnDate=?, Delivered=?, Renovations=?, PenaltyFee=?, Autorize=?, Receiver=? WHERE Id=?";
         
         try {
             ps = con.prepareStatement(SQL);
@@ -673,14 +692,14 @@ public class LoanDAO extends ConnectionDB {
     } //==============================================
     
     // Finaliza el prestamo y establece que administrador recibio el libro
-    public boolean finalizeLoan(Long ISBN, int ControlNumber, int Sender){
+    public boolean finalizeLoan(Long ISBN, int ControlNumber, int Receiver){
         PreparedStatement ps = null;
         Connection con = getConnection();
-        String SQL = "UPDATE loans SET Delivered=true, Sender=? WHERE (ISBN=?) AND (ControlNumber=?)";
+        String SQL = "UPDATE loans SET Delivered=true, Receiver=? WHERE (ISBN=?) AND (ControlNumber=?)";
         try {
             ps = con.prepareStatement(SQL);
             
-            ps.setInt(1, Sender);
+            ps.setInt(1, Receiver);
             ps.setLong(2, ISBN);
             ps.setInt(3, ControlNumber);
        
@@ -709,9 +728,8 @@ public class LoanDAO extends ConnectionDB {
             while (rs.next()) { 
                 Calendar LoanDate = Calendar.getInstance();
                 Calendar ReturnDate = Calendar.getInstance();
-                Calendar lastUpdate = Calendar.getInstance();
                 
-                Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, lastUpdate, false, Short.MIN_VALUE, 0, 0, 0);
+                Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate,  false, Short.MIN_VALUE, 0, 0, 0);
 
                 // Se comineza desde la columna 1 no del 0.
                 loan.setId(rs.getInt(1));
@@ -726,16 +744,12 @@ public class LoanDAO extends ConnectionDB {
                 ReturnDate.setTime(rs.getDate(5));
                 loan.setReturnDate(ReturnDate);
 
-                // sql.date to Calendar
-                lastUpdate.setTime(rs.getDate(6));
-                loan.setLastUpdate(lastUpdate);
-             
-                loan.setDelivered(rs.getBoolean(7));
-                loan.setRenovations(rs.getShort(8));
-                loan.setPenaltyFee(rs.getDouble(9));
+                loan.setDelivered(rs.getBoolean(6));
+                loan.setRenovations(rs.getShort(7));
+                loan.setPenaltyFee(rs.getDouble(8));
                 
-                loan.setAutorize(rs.getInt(10));
-                loan.setReceiver(rs.getInt(11));
+                loan.setAutorize(rs.getInt(9));
+                loan.setReceiver(rs.getInt(10));
                 datos.add(loan);
             }
         } catch (SQLException e) {

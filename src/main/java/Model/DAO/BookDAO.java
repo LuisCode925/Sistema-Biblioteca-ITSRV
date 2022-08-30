@@ -20,8 +20,13 @@ import java.util.GregorianCalendar;
  * @author Luis
  */
 public class BookDAO extends ConnectionDB {
+    //TODO delete, addToInventory, updateBibliography necesitan manejar excepciones
 
-    // Paso los test
+    /**
+     * Get the infomation from the book with the
+     * @param ISBN (unique id of each book)
+     * @return the seached data in a Book Object or throw.
+     */
     public Book getInfo(Long ISBN){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -59,7 +64,7 @@ public class BookDAO extends ConnectionDB {
                 book.setStock(rs.getInt(12));
                 book.setBFree(rs.getInt(13));
             } else {
-                throw new NullPointerException("No se encontro el libros con ese ISBN " + ISBN);
+                throw new IllegalArgumentException("No se encontro el libros con el ISBN espesificado.");
             }
         } catch (SQLException e) {
             System.out.println("Error getInfo: "+e.getMessage());
@@ -67,7 +72,11 @@ public class BookDAO extends ConnectionDB {
         return book;
     }
 
-    // Paso los test
+    /**
+     * Query the database using the 
+     * @param ISBN (unique id of each book) to
+     * @return the number of books avalible for loans.
+     */
     public int getBooksAvalible(Long ISBN){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -84,7 +93,7 @@ public class BookDAO extends ConnectionDB {
             if (rs.next()) {
                 BFree = rs.getInt(1);
             } else {
-                throw new NullPointerException("No se han encontrado resultados.");
+                throw new IllegalArgumentException("No se han encontrado resultados.");
             }
         } catch (SQLException e) {
             System.out.println("Error en getBooksAvalible: "+e.getMessage());
@@ -92,7 +101,10 @@ public class BookDAO extends ConnectionDB {
         return BFree;
     }
     
-    // Paso los test
+    /**
+     * None parameters simply
+     * @return all the books registered
+     */
     public List<Book> getLibrary(){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -138,7 +150,10 @@ public class BookDAO extends ConnectionDB {
         return datos;
     }
 
-    // Paso los test
+    /**
+     * Used in the autocomplete function in JTextField
+     * @return a list with all the xontrol numbers form the users
+     */
     public List<String> getAllISBN(){
         PreparedStatement ps = null;
         Connection con = getConnection();
@@ -162,9 +177,15 @@ public class BookDAO extends ConnectionDB {
         return datos;
     }
 
-    // Falta informacion y checar el borrado de las llaves foraneas
-    // TODO REfactorizar para manejar correctamente las excepciones
-    public boolean delete(Long book){
+    // TODO Falta informacion y checar el borrado de las llaves foraneas
+    // TODO Refactorizar para manejar correctamente las excepciones
+    
+    /**
+     * Used to delete a registry in the Data Base
+     * @param ISBN (unique id of each book)
+     * @return true if the operation is successful.
+     */
+    public boolean delete(Long ISBN){
         PreparedStatement ps = null;
         Connection con = getConnection();
 
@@ -172,7 +193,7 @@ public class BookDAO extends ConnectionDB {
 
         try {
             ps = con.prepareStatement(SQL);
-            ps.setLong(1, book);
+            ps.setLong(1, ISBN);
             ps.execute();
             return true;
         } catch (Exception e) {
@@ -181,12 +202,18 @@ public class BookDAO extends ConnectionDB {
         }
     }
     
-    // Paso el test
+    /**
+     * Used to insert a registry in the Data Base
+     * @param book Object contains all data 
+     * @return true if the operation is successful
+     */
     public boolean addToInventory(Book book){
         PreparedStatement ps = null;
         Connection con = getConnection();
 
-        String SQL = "INSERT INTO books (ISBN, Title, Author, Editorial, Edition, YearPublication, Shelf, Section, Department, Category, Language, Stock, BFree) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String SQL = "INSERT INTO books (ISBN, Title, Author, Editorial, Edition, "
+                + "YearPublication, Shelf, Section, Department, Category, Language, "
+                + "Stock, BFree) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try {
             ps = con.prepareStatement(SQL);
             
@@ -212,12 +239,17 @@ public class BookDAO extends ConnectionDB {
         }
     }
     
-    // Paso el test
+    /**
+     * Used to update a registry in the Data Base
+     * @param book Object contains all data 
+     * @return true if the operation is successful.
+     */
     public boolean updateBibliography(Book book){
         PreparedStatement ps = null;
         Connection con = getConnection();
-        String SQL = "UPDATE books SET Title=?, Author=?, Editorial=?, Edition=?, YearPublication=?,"
-                + " Shelf=?, Section=?, Department=?, Category=?, Language=?, Stock=?, BFree=? WHERE ISBN=?";
+        String SQL = "UPDATE books SET Title=?, Author=?, Editorial=?, Edition=?, "
+                + "YearPublication=?, Shelf=?, Section=?, Department=?, Category=?, "
+                + "Language=?, Stock=?, BFree=? WHERE ISBN=?";
         try {
             ps = con.prepareStatement(SQL);
             
@@ -243,7 +275,12 @@ public class BookDAO extends ConnectionDB {
         }
     }
     
-    // Paso el test
+    /**
+     * Used to seach results more specific
+     * @param column definen the column where the search will be done
+     * @param word is the phrase to search
+     * @return the closer results if not null.
+     */
     public List<Book> searchByColumn(String column, String word){
         PreparedStatement ps = null;
         Connection con = getConnection();

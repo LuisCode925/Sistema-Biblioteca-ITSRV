@@ -6,12 +6,13 @@ package Model.DAO;
 
 import Model.Book;
 import com.github.javafaker.Faker;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
 import java.util.GregorianCalendar;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 /**
@@ -24,12 +25,12 @@ public class BookDAOTest {
     public Book book;
     public Faker faker;
 
-    @BeforeClass
+    @BeforeAll
     public static void alInicio(){
         System.out.println("Inicio del test.");
     }
 
-    @Before
+    @BeforeEach
     public void before(){
         bookDAO = new BookDAO();
         faker = new Faker();
@@ -41,9 +42,12 @@ public class BookDAOTest {
         assertEquals("Auditoría en sistemas computacionales", book.getTitle());
     }
     
-    @Test(expected = NullPointerException.class)
+    @Test
     public void getInfo_WithInvalid_ISBN(){
-        bookDAO.getInfo(1027836474263L);
+        IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class, () -> {
+            bookDAO.getInfo(1027836474263L); //Code under test
+        });
+        assertEquals("No se encontro el libros con el ISBN espesificado.", thrown.getMessage());
     }
 
     @Test
@@ -51,9 +55,12 @@ public class BookDAOTest {
         assertEquals(4, bookDAO.getBooksAvalible(9789702611905L));
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void getBooksAvalible_WithInvalid_ISBN(){
-        bookDAO.getBooksAvalible(1027836474263L);
+        IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class, () -> {
+            bookDAO.getBooksAvalible(1027836474263L); //Code under test
+        });
+        assertEquals("No se han encontrado resultados.", thrown.getMessage());
     }
 
     @Test
@@ -61,18 +68,10 @@ public class BookDAOTest {
         assertEquals(3, bookDAO.getLibrary().size());
     }
 
-    /*@Test
-    public void getLibrary_butReturnNull(){
-        TODO Hacer una prueba pero sin elementos
-        assertEquals(3, bookDAO.getLibrary().size());
-    }*/
-
     @Test
     public void getAllISBN(){
         assertEquals(3, bookDAO.getAllISBN().size());
     }
-
-    // TODO un test donde no devuelvan ISBN's
 
     @Test
     public void addToInventory(){
@@ -117,7 +116,7 @@ public class BookDAOTest {
         assertEquals(0, bookDAO.searchByColumn("title", "zshyiuzhdiuahsiudh").size());
     }
 
-    @AfterClass
+    @AfterAll
     public static void ejecutarAlFinalizar(){
         System.out.println("Fin del test.");
     }

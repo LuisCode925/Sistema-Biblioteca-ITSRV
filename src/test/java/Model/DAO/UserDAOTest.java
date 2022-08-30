@@ -3,16 +3,14 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package Model.DAO;
+
 import Model.User;
 import com.github.javafaker.Faker;
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import org.junit.jupiter.api.*;
 
-/**
- *
- * @author Luis
- */
+import static org.junit.jupiter.api.Assertions.*;
+
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserDAOTest {
     
     public UserDAO userDAO;
@@ -20,29 +18,33 @@ public class UserDAOTest {
     public User user;
     
     
-    @Before
+    @BeforeEach
     public void before(){
         userDAO = new UserDAO();
         faker = new Faker();
     }
-    
+
     @Test
-    public void getUserWithTrueParam(){
+    @Order(1)
+    public void getUser_WithTrueParam(){
         assertEquals("195925luis@gmail.com", userDAO.getUser(18220002).getEmail());
     }
     
     @Test
-    public void getUserWithFalseParam(){
+    @Order(2)
+    public void getUser_WithFalseParam(){
         assertNull(userDAO.getUser(0));
     }
     
     @Test
-    public void isBannedWithAValidControlNumber(){
+    @Order(3)
+    public void isBanned_WithAValidControlNumber(){
         assertFalse(userDAO.isBanned(18220002));
     }
     
     @Test
-    public void isBannedWithInvalidControlNumber(){
+    @Order(4)
+    public void isBanned_WithInvalidControlNumber(){
         IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class, () -> {
             userDAO.isBanned(87564856); //Code under test
         });
@@ -50,38 +52,77 @@ public class UserDAOTest {
     }
     
     @Test
+    @Order(5)
     public void getAllUsers(){
         assertEquals(2, userDAO.getAllUsers().size());
     }
     
     @Test
+    @Order(6)
     public void getAllControlNumbers(){
         assertEquals(2, userDAO.getAllControlNumbers().size());
     }
     
     @Test
+    @Order(7)
     public void getAllCollegeCareers(){
         assertEquals(5, userDAO.getAllCollegeCareers().size());
     }
-    
+            
     @Test
-    public void unsubscribe(){
-        // TODO
+    @Order(8)
+    public void updateInfo(){
+        user = new User(18220003, "Luis Enrique", "Herrera Herrera", 
+                4871180899L, "test@maildrop.cc", 2, "Palomas", false);
+        assertTrue(userDAO.updateInfo(user));
     }
     
-    /*@Test
+    @Test
+    @Order(9)
+    public void unsubscribe(){
+        user = new User(18220003, "Names", "LastNames", 
+                Long.MIN_VALUE, "Email", 2, "Address", false);
+        assertTrue(userDAO.unsubscribe(user));
+    }
+    
+    @Test
+    @Order(10)
     public void subscribe(){
-        user = new User(
-                0, 
-                faker.name().firstName(), 
-                faker.name().lastName()+ " " + faker.name().lastName(), 
-                faker.phoneNumber().cellPhone(), 
-                Email, 
-                0, 
-                Address, 
-                true);
-    }*/
+        user = new User(18220003, "Luis Enrique", "Herrera Herrera", 
+            4871180899L, "test@maildrop.cc", 2, "Benito Juarez #5, San Vicente Rioverde", false);
+        assertTrue(userDAO.subscribe(user));
+    }
+    
+    @Test
+    @Order(11)
+    public void searchByColumn(){
+        assertEquals(1, userDAO.searchByColumn("Email", "maildrop.cc").size());
+    }
+    
+    @Test
+    @Order(12)
+    public void updateInfo_toInit(){
+        user = new User(18220003, "Luis Enrique", "Herrera Herrera", 
+                4871180899L, "test@maildrop.cc", 2, "Benito Juarez #5, San Vicente Rioverde", false);
+        assertTrue(userDAO.updateInfo(user));
+    }
 
-
-// awiuejowje     
+    @Test
+    @Order(13)
+    public void banUnban(){
+        assertTrue(userDAO.banUnban(18220002, true));
+    }
+    
+    @Test
+    @Order(14)
+    public void banUnban_check(){
+        assertTrue(userDAO.isBanned(18220002));
+    }
+    
+    @Test
+    @Order(15)
+    public void banUnban_toAfter(){
+        assertTrue(userDAO.banUnban(18220002, false));
+    }
+    
 }

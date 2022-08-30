@@ -18,21 +18,18 @@ public class Loan{
     private Long ISBN;
     private Calendar LoanDate;
     private Calendar ReturnDate;
-    private Calendar lastUpdate;
     private boolean Delivered;
     private short Renovations;
     private double PenaltyFee;
     private int Autorize;
     private int Receiver;
-
-    // 0, 0, Long.MIN_VALUE, new Date(), new Date(), Short.MIN_VALUE, 0, 0
-    public Loan(int Id, int ControlNumber, Long ISBM, Calendar LoanDate, Calendar ReturnDate,Calendar lastUpdate, boolean Delivered, short Renovations, double PenaltyFee, int Autorize, int Receiver) {
+    
+    public Loan(int Id, int ControlNumber, Long ISBM, Calendar LoanDate, Calendar ReturnDate, boolean Delivered, short Renovations, double PenaltyFee, int Autorize, int Receiver) {
         this.Id = Id;
         this.ControlNumber = ControlNumber;
         this.ISBN = ISBM;
         this.LoanDate = LoanDate;
         this.ReturnDate = ReturnDate;
-        this.lastUpdate = lastUpdate;
         this.Delivered = Delivered;
         this.Renovations = Renovations;
         this.PenaltyFee = PenaltyFee;
@@ -80,14 +77,6 @@ public class Loan{
         this.ReturnDate = ReturnDate;
     }
 
-    public Calendar getLastUpdate() {
-        return lastUpdate;
-    }
-
-    public void setLastUpdate(Calendar lastUpdate) {
-        this.lastUpdate = lastUpdate;
-    }
-
     public boolean isDelivered() {
         return Delivered;
     }
@@ -127,5 +116,5 @@ public class Loan{
     public void setReceiver(int Receiver) {
         this.Receiver = Receiver;
     }
-    
+  
 }

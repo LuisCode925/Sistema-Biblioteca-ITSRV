@@ -12,8 +12,6 @@ import Model.User;
 import Model.DAO.UserDAO;
 import View.LoanView;
 import System.Main;
-import com.toedter.calendar.JDateChooser;
-import com.toedter.calendar.JTextFieldDateEditor;
 // import com.google.gson.Gson;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,7 +24,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
-import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import org.jdesktop.swingx.autocomplete.ObjectToStringConverter;
@@ -57,6 +54,7 @@ public class LoanController implements ActionListener, FocusListener{
         // Eventos focus para llenar la lista de autocompletado
         this.loanView.txtControlNumber.addFocusListener(this);
         this.loanView.txtISBN.addFocusListener(this);
+        
         this.loanView.LoanDatePicker.addFocusListener(this);
         
         // Acciones que se debe realizar al principio
@@ -69,20 +67,15 @@ public class LoanController implements ActionListener, FocusListener{
     
     private void getLoanForm() {
         try {
-            int CN = Integer.parseInt(this.loanView.txtControlNumber.getText());
-            Long Book = Long.parseLong(this.loanView.txtISBN.getText());
+            int ControlNumber = Integer.parseInt(this.loanView.txtControlNumber.getText());
+            Long ISBN = Long.parseLong(this.loanView.txtISBN.getText());
 
-            this.loan.setControlNumber(CN);
-            this.loan.setISBN(Book);
+            this.loan.setControlNumber(ControlNumber);
+            this.loan.setISBN(ISBN);
             this.loan.setLoanDate(this.loanView.LoanDatePicker.getCalendar());// Obtiene un objeto del tipo Calendar
             this.loan.setReturnDate(this.loanView.ReturnDatePicker.getCalendar());
             this.loan.setAutorize(Main.Administrator.getId());
-            
-            /*
-                Gson gson = new Gson();
-                String JSON = gson.toJson(this.loan);
-                System.out.println(JSON); 
-            */
+
         } catch (NumberFormatException nfe) {
             System.out.println("getLoanForm: "+nfe.getMessage());
         }
@@ -131,7 +124,7 @@ public class LoanController implements ActionListener, FocusListener{
         this.loanView.lblBookEditorial.setText(book.getEditorial());
     }
     
-    private void disableForUser(){
+    private void disableFormUser(){
         this.loanView.txtISBN.setEnabled(false);
         this.loanView.LoanDatePicker.setEnabled(false);
         this.loanView.ReturnDatePicker.setEnabled(false);
@@ -164,7 +157,7 @@ public class LoanController implements ActionListener, FocusListener{
         
         if(e.getSource() == loanView.btnSave){
             getLoanForm();
-            if (loanDAO.registerLoan(loan)) {
+            if (loanDAO.bookCheckOut(loan)) {
                 cleanLoanForm();//
                 JOptionPane.showMessageDialog(null, "Prestamo realizado correctamente.");
             } else {
@@ -178,83 +171,95 @@ public class LoanController implements ActionListener, FocusListener{
     public void focusGained(FocusEvent e) {
         
         // ENTRANDO: Cuando se va a escribir el numero de control. ================================================
-        if (e.getSource() == loanView.txtControlNumber) {
-            List<String> suggestions = loanUserDAO.getAllControlNumbers();
-            String[] options = new String[suggestions.size()];
-            suggestions.toArray(options);
-            loadSuggestions(options, this.loanView.txtControlNumber);      
-        } //====================================================================================================*/
+        if (e.getSource() == loanView.txtControlNumber) { autocompleteControlNumber(); }
         
-        if(e.getSource() == loanView.txtISBN){
-            List<String> suggestions = loanBookDAO.getAllISBN();
-            String[] options = new String[suggestions.size()];
-            suggestions.toArray(options);
-            loadSuggestions(options, this.loanView.txtISBN);
-        }
+        if(e.getSource() == loanView.txtISBN){ autocompleteISBN(); }
         
+    }
+
+    private void autocompleteISBN() {
+        List<String> suggestions = loanBookDAO.getAllISBN();
+        // for(int i=0;i<suggestions.size();i++) { System.out.println(suggestions.get(i));}
+        String[] options = new String[suggestions.size()];
+        suggestions.toArray(options);
+        loadSuggestions(options, this.loanView.txtISBN);
+    }
+
+    private void autocompleteControlNumber() {
+        List<String> suggestions = loanUserDAO.getAllControlNumbers();
+        // for(int i=0;i<suggestions.size();i++) { System.out.println(suggestions.get(i));}
+        String[] options = new String[suggestions.size()];
+        suggestions.toArray(options);
+        loadSuggestions(options, this.loanView.txtControlNumber);
     }
 
     @Override
     public void focusLost(FocusEvent e) {
         
-        // SALIENDDO: Cuando se pasa al campo del ISBN - TODO:  Establecer el rango del numero de control de los docentes
-        if (e.getSource() == loanView.txtControlNumber && loanView.txtControlNumber.getText().length() > 0) {
-            // Comprobar antes que el usuario pueda tener un prestamo
-            try {
-                int ControlNumber = Integer.parseInt(loanView.txtControlNumber.getText());
-                List<Long> loans = loanDAO.isFullLoans(ControlNumber); // Numero de prestamos
-                if(loans.size()>=3){
-                    // Desabilitar todos exepto el boton de limpiar
-                    loadInfoUser(ControlNumber);
-                    this.loanView.txtNLoan.setText("3");
-                    disableForUser();
-                    JOptionPane.showMessageDialog(null, "El Usuario ya ha alcanzado el limite de ejemplares.");
-                } else if(loanUserDAO.isBanned(ControlNumber)){
-                    loadInfoUser(ControlNumber);
-                    disableForUser();
-                    JOptionPane.showMessageDialog(null, "El Usuario ingresado se encuentra Baneado, por el incumplimiento de multas.");
-                } else {
-                    loadInfoUser(ControlNumber);
-                    this.loanView.txtNLoan.setText(String.valueOf(loans.size()));
-                }  
-            } catch (NumberFormatException NumberExcep) {
-                System.out.println("Error al convertir a Int: "+ NumberExcep.getMessage());
-            }
-            
-        }// ==================================================================== */
-        
-        
+        // SALIENDO: Cuando se pasa al campo del ISBN - TODO:  Establecer el rango del numero de control de los docentes
+        if ( (e.getSource() == loanView.txtControlNumber) && (loanView.txtControlNumber.getText().length() > 0) ) {
+            showUserInfo();
+        }
+
         // SALIENDO: se consulta si el libro ingresado tiene ejemplares disponibles 
-        if (e.getSource() == loanView.txtISBN) {
-            
-            // Libros que el administrador permite para PRESTAMOS
-            if (loanView.txtISBN.getText().length() > 0) {
-                try {
-                    Long searchBook = Long.parseLong(loanView.txtISBN.getText());
-                    int booksAvalible = loanBookDAO.getBooksAvalible(searchBook); 
-
-                    // Libros que realmente estan en prestamos activos (QUE NO HAN SIDO ENTREGADOS)
-                    List<Integer> takedBooks = loanDAO.getBooksByISBN(searchBook);
-
-                    if (takedBooks.size() < booksAvalible) {
-                        this.loanView.ReturnDatePicker.setEnabled(true);
-                        Calendar ReturnDate = Calendar.getInstance();
-                        ReturnDate.add(Calendar.DATE, 3);
-                        Date ReturnDateP = ReturnDate.getTime();
-                        this.loanView.ReturnDatePicker.setDate(ReturnDateP);
-                        this.loanView.btnSave.setEnabled(true);
-                        loadInfoBook(searchBook);
-                    } else {
-                        this.loanView.btnSave.setEnabled(false);
-                        JOptionPane.showMessageDialog(null, "No se pueden prestar mas libros de este ejemplar.");
-                    }
-                } catch (NumberFormatException ex) {
-                    System.out.println("Error al convertir a long: "+ ex.getMessage());
-                }
-                
-            }
-            
-        }// ==================================================================== */
+        if (e.getSource() == loanView.txtISBN) { showBookInfo();}
         
     }
+
+    private void showBookInfo() {
+        // Libros que el administrador permite para PRESTAMOS
+        if (loanView.txtISBN.getText().length() > 9 && loanView.txtISBN.getText().length() < 14) {
+            try {
+                Long searchBook = Long.parseLong(loanView.txtISBN.getText());
+                int booksAvalible = loanBookDAO.getBooksAvalible(searchBook); // De la BD obtiene los libros que pueden prestarce.
+
+                // Libros que realmente estan en prestamos activos (QUE NO HAN SIDO ENTREGADOS)
+                List<Integer> takedBooks = loanDAO.getActiveLoans(searchBook);
+
+                if (takedBooks.size() < booksAvalible) {
+                    // El libro solicitado tiene ejemplares disponibles para prestamo.
+                    this.loanView.ReturnDatePicker.setEnabled(true);
+                    Calendar ReturnDate = Calendar.getInstance();
+                    ReturnDate.add(Calendar.DATE, 3);
+                    Date ReturnDateP = ReturnDate.getTime();
+                    this.loanView.ReturnDatePicker.setDate(ReturnDateP);
+                    this.loanView.btnSave.setEnabled(true);
+                    loadInfoBook(searchBook);
+                } else {
+                    // Ya se ha alcanzado el limite de los ejemplares prestrados.
+                    this.loanView.btnSave.setEnabled(false);
+                    JOptionPane.showMessageDialog(null, "No se pueden prestar mas libros de este ejemplar.");
+                }
+            } catch (NumberFormatException ex) {
+                System.out.println("Error al convertir a long: "+ ex.getMessage());
+            }
+        }
+    }
+
+    private void showUserInfo() {
+        try {
+            int ControlNumber = Integer.parseInt(loanView.txtControlNumber.getText());
+            List<Long> loans = loanDAO.getUndelivered(ControlNumber); // Numero de prestamos del usuario ingresado
+
+            if(loans.size()>=3){
+                // El usuario no esta baneado pero ha alcanzado el limite.
+                loadInfoUser(ControlNumber);
+                this.loanView.txtNLoan.setText("3");
+                disableFormUser();
+                JOptionPane.showMessageDialog(null, "El Usuario ya ha alcanzado el limite de ejemplares.");
+            } else if(loanUserDAO.isBanned(ControlNumber)){
+                // El usuario ha sido baneado por lo que no puede tener prestamos.
+                loadInfoUser(ControlNumber);
+                disableFormUser();
+                JOptionPane.showMessageDialog(null, "El Usuario ingresado se encuentra Baneado, por el incumplimiento de multas.");
+            } else {
+                // El usuario tiene prestamos disponibles.
+                loadInfoUser(ControlNumber);
+                this.loanView.txtNLoan.setText(String.valueOf(loans.size()));
+            }
+        } catch (NumberFormatException NumberExcep) {
+            System.out.println("Error al convertir a Int: "+ NumberExcep.getMessage());
+        }
+    }
+
 }

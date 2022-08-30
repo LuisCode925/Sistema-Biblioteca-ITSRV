@@ -206,7 +206,7 @@ public class UserController implements ActionListener{
             } else {
                 // Para editar un libro existente
                 if (operation.equals("Actualizar informacion del usuario")) {
-                    if (userDAO.updateUserInfo(user)) {
+                    if (userDAO.updateInfo(user)) {
                         this.closeAddEdit();
                         this.cleanTable(this.userView.tableUsers);
                         this.toList(this.userView.tableUsers);

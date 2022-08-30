@@ -262,7 +262,7 @@ public class ReturnController implements ActionListener, FocusListener {
             //if (!returnView.cboxBookISBN.getSelectedItem().equals("--- Seleccionar ISBN ---")) {
             try{
                 Long ISBN_book = Long.parseLong((String) returnView.cboxBookISBN.getSelectedItem());
-                Loan book = loanDAO.getLoan(ISBN_book, Integer.parseInt(returnView.txtControlNumber.getText()));
+                Loan book = loanDAO.getInfo(ISBN_book, Integer.parseInt(returnView.txtControlNumber.getText()));
                 Date expectedDate = book.getReturnDate().getTime();
                 // System.out.println(expectedDate); System.out.println(new Date());
                 returnView.txtReturnDate.setDate(expectedDate);
@@ -308,7 +308,7 @@ public class ReturnController implements ActionListener, FocusListener {
             // Comprobar antes que el usuario pueda tener un prestamo
             try {
                 int ControlNumber = Integer.parseInt(returnView.txtControlNumber.getText());
-                List<Long> longs = loanDAO.isFullLoans(ControlNumber); // Numero de prestamos
+                List<Long> longs = loanDAO.getUndelivered(ControlNumber); // Numero de prestamos
                 List<String> loans = new ArrayList<>(longs.size()+1);
                 loans.add("--- Seleccionar ISBN ---");
                 for(Long loan_item: longs){
