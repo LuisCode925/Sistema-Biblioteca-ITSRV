@@ -49,64 +49,66 @@ public class HomeController implements ActionListener {
         this.homeView.txtSignUpNickName.addKeyListener(new KeyListener() {
             @Override public void keyTyped(KeyEvent e) { }
             @Override public void keyPressed(KeyEvent e) {}
-            @Override public void keyReleased(KeyEvent e) {verifyNickname();}
-            public void verifyNickname(){
-                //System.out.println(homeView.txtSignUpNickName.getText());
-                if(nicknames_list.contains(homeView.txtSignUpNickName.getText())) {
-                    homeView.lblSignUpNickName.setText("Nombre de Usuario: NO Disponible");
-                    homeView.txtSignUpNickName.setForeground(Color.RED);
-                    homeView.btnSignUp.setEnabled(false);
-                } else {
-                    homeView.lblSignUpNickName.setText("Nombre de Usuario: Disponible");
-                    homeView.txtSignUpNickName.setForeground(Color.GREEN);
-                    homeView.btnSignUp.setEnabled(true);
-                }
-            }
+            @Override public void keyReleased(KeyEvent e) { isNicknameAvalible(); }
         });
-            
-        // Obtencion de la sesion guardada
-        logBySession();
+
+        if(Main.Administrator!=null) loginSuccessful();
+        logBySession(); // Obtencion de la sesion guardada en el archivo .properties
         nicknames_list = libDAO.getAllNicknames();
+    }
+
+    public void isNicknameAvalible(){
+        if(nicknames_list.contains(homeView.txtSignUpNickName.getText())) {
+            homeView.lblSignUpNickName.setText("Nombre de Usuario: NO Disponible");
+            homeView.txtSignUpNickName.setForeground(Color.RED);
+            homeView.btnSignUp.setEnabled(false);
+        } else {
+            homeView.lblSignUpNickName.setText("Nombre de Usuario: Disponible");
+            homeView.txtSignUpNickName.setForeground(Color.GREEN);
+            homeView.btnSignUp.setEnabled(true);
+        }
     }
     
     public void logBySession(){
-        try {
+        //try {
+            // Varibles para trabajar la sesion 
             SettingsProperties properties = new SettingsProperties();
             Map<String,String> conf = properties.readProperties();
             String nickname = "", passwd = "";
 
+            // Confirmamos dentro del archivo properties esten los datos
             if (conf.containsKey("admin.user") && conf.containsKey("admin.pass")) {
                 nickname = conf.get("admin.user");
                 passwd = conf.get("admin.pass");
             }
+            
+            lib.setNickName(nickname); lib.setPassword(passwd);
 
-            // Se obtiene el usuario y la contraseña del formulario
-            lib.setNickName(nickname);
-                lib.setPassword(passwd);
-
-            // El Administrador se encuentra en la base de datos
+            // Con los datos .properties se hara la consulta
             if (libDAO.validate(lib)!= null && !nickname.equals("") && !passwd.equals("")) {
-
-                // Se establece que el usuario logueado como administrador
-                Main.Administrator = libDAO.validate(lib);
-
-                // Se muestran las etiquetas para mustrar el usuario logueado
-                homeView.lblWelcome.setVisible(true);
-                homeView.lblLoggedUser.setVisible(true);
-                homeView.btnLogout.setVisible(true);
-
-                // Se establece la etiqueta con el nombre completo del administrador
-                homeView.lblLoggedUser.setText(Main.Administrator.getNames() + " " + Main.Administrator.getLastNames());
-
-                cleanLogin();
-                disableContainer(homeView.LoginPanel, false);
+                Main.Administrator = libDAO.validate(lib); // Se hace la consulta a la DB y se establece como Administrator
+                DashboardController.isLoggedAdmin(true);
+                loginSuccessful();
             } 
-        } catch (IOException e) {
+        /*} catch (IOException e) {
             System.out.println("Error logBySession: "+e.getMessage());
-        }
+        }*/
         
     }
-    
+
+    private void loginSuccessful() {
+        // Se muestran las etiquetas para mustrar el usuario logueado
+        homeView.lblWelcome.setVisible(true);
+        homeView.lblLoggedUser.setVisible(true);
+        homeView.btnLogout.setVisible(true);
+
+        // Se establece la etiqueta con el nombre completo del administrador
+        homeView.lblLoggedUser.setText(Main.Administrator.getNames() + " " + Main.Administrator.getLastNames());
+
+        cleanLogin();
+        disableContainer(homeView.LoginPanel, false);
+    }
+
     public static String getHash(byte[] input, String algorithm){
         String hashValue = null;
         
@@ -189,6 +191,7 @@ public class HomeController implements ActionListener {
             disableContainer(homeView.LoginPanel, false);
             
             // Mensaje de configmacion al usuario
+            DashboardController.isLoggedAdmin(true);
             JOptionPane.showMessageDialog(null, "Usted ha ingresado como " + Main.Administrator.getNickName());
         } else{
             // No se encontraron resultados de la busqueda
@@ -229,26 +232,26 @@ public class HomeController implements ActionListener {
         if (e.getSource() == homeView.btnLogin) {
             logLibrarian();
             if (homeView.btnRememberMe.isSelected()) {
-                try {
+                //try {
                     SettingsProperties properties = new SettingsProperties();
                     Map<String,String> conf = properties.readProperties();
                     conf.put("admin.user", Main.Administrator.getNickName());
                     conf.put("admin.pass", Main.Administrator.getPassword());
                     properties.writeProperties(conf);
-                } catch (IOException ioe) {
+                /*} catch (IOException ioe) {
                     System.out.println("Error homeView.btnLogin Action: "+ioe.getMessage());
-                }
+                }*/
                 
             } else {
-                try {
+                //try {
                     SettingsProperties properties = new SettingsProperties();
                     Map<String,String> conf = properties.readProperties();
                     conf.remove("admin.user");
                     conf.remove("admin.pass");
                     properties.writeProperties(conf);
-                } catch (IOException ioe) {
+                /*} catch (IOException ioe) {
                     System.out.println("Error homeView.btnLogin Action: "+ioe.getMessage());
-                }
+                }*/
             
             }
         }
@@ -261,17 +264,18 @@ public class HomeController implements ActionListener {
             homeView.lblWelcome.setVisible(false);
             homeView.lblLoggedUser.setVisible(false);
             homeView.btnLogout.setVisible(false);
-            
+
+            DashboardController.isLoggedAdmin(false);
             Main.Administrator = null;
-            try {
+            //try {
                 SettingsProperties properties = new SettingsProperties();
                 Map<String,String> conf = properties.readProperties();
                 conf.remove("admin.user");
                 conf.remove("admin.pass");
                 properties.writeProperties(conf);
-            } catch (IOException ioe) {
+            /*} catch (IOException ioe) {
                 System.out.println("Error homeView.btnLogout: "+ioe.getMessage());
-            }
+            }*/
        
         }
     }

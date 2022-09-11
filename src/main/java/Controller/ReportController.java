@@ -34,7 +34,7 @@ public class ReportController implements ActionListener, PropertyChangeListener 
         this.loanDAO = loanDAO;
         this.reportView = reportView;
         
-        // Botones que se deben escuchar 
+        // Botones que filtran los prestamos y para exportar a Excel
         this.reportView.btnExportTab1.addActionListener(this);
         this.reportView.btnBoth.addActionListener(this);
         this.reportView.btnOnlyDelivered.addActionListener(this);
@@ -48,10 +48,88 @@ public class ReportController implements ActionListener, PropertyChangeListener 
         // Acciones que deben ocurrir por defecto
         this.reportView.StartDatePicker.setMaxSelectableDate(new Date());
         this.reportView.FinishDatePicker.setMaxSelectableDate(new Date());
+
         this.setAllLoans(this.reportView.LoansTable);
-        //searchByRange();
+
+        this.loadTopBooks(this.reportView.TopBooksTable);
+        this.loadTopCareers(this.reportView.MoreActiveCareersTable);
+        this.loadMostPenalized(this.reportView.MostPenalizedUsersTable); //
+
+        this.loadBestUsers(this.reportView.BestUsersTable);
+    }
+
+    public void loadBestUsers(JTable table){
+        DefaultTableModel modelo = (DefaultTableModel) table.getModel();
+        List<Object[]> users = loanDAO.getBestUsers();
+        for (Object[] user : users) {
+            modelo.addRow(user);
+        }
+        reportView.BestUsersTable.setModel(modelo);
     }
     
+    public void loadBestUsers(JTable table, Calendar start, Calendar end){
+        DefaultTableModel modelo = (DefaultTableModel) table.getModel();
+        List<Object[]> users = loanDAO.getBestUsers(start, end);
+        for (Object[] user : users) {
+            modelo.addRow(user);
+        }
+        reportView.BestUsersTable.setModel(modelo);
+    }
+
+    public void loadMostPenalized(JTable table){
+        DefaultTableModel modelo = (DefaultTableModel) table.getModel();
+        List<Object[]> users = loanDAO.getMostPenalizedUsers();
+        for (Object[] user : users) {
+            modelo.addRow(user);
+        }
+        reportView.MostPenalizedUsersTable.setModel(modelo);
+    }
+    
+    public void loadMostPenalized(JTable table, Calendar start, Calendar end){
+        DefaultTableModel modelo = (DefaultTableModel) table.getModel();
+        List<Object[]> users = loanDAO.getMostPenalizedUsers(start, end);
+        for (Object[] user : users) {
+            modelo.addRow(user);
+        }
+        reportView.MostPenalizedUsersTable.setModel(modelo);
+    }
+
+    public void loadTopCareers(JTable table){
+        DefaultTableModel modelo = (DefaultTableModel) table.getModel();
+        List<Object[]> careers = loanDAO.getMoreActiveCareers();
+        for (Object[] careeer : careers) {
+            modelo.addRow(careeer);
+        }
+        reportView.MoreActiveCareersTable.setModel(modelo);
+    }
+    
+    public void loadTopCareers(JTable table, Calendar start, Calendar end){
+        DefaultTableModel modelo = (DefaultTableModel) table.getModel();
+        List<Object[]> careers = loanDAO.getMoreActiveCareers(start, end);
+        for (Object[] careeer : careers) {
+            modelo.addRow(careeer);
+        }
+        reportView.MoreActiveCareersTable.setModel(modelo);
+    }
+
+    public void loadTopBooks(JTable table){
+        DefaultTableModel modelo = (DefaultTableModel) table.getModel();
+        List<Object[]> books = loanDAO.getTopBooks();
+        for (Object[] book : books) {
+            modelo.addRow(book);
+        }
+        reportView.TopBooksTable.setModel(modelo);
+    }
+    
+    public void loadTopBooks(JTable table, Calendar start, Calendar end){
+        DefaultTableModel modelo = (DefaultTableModel) table.getModel();
+        List<Object[]> books = loanDAO.getTopBooks(start, end);
+        for (Object[] book : books) {
+            modelo.addRow(book);
+        }
+        reportView.TopBooksTable.setModel(modelo);
+    }
+
     public void setAllLoans(JTable Table){ 
         DefaultTableModel modelo = (DefaultTableModel) Table.getModel();
         List<Object[]> loans = loanDAO.getAllLoans();
@@ -107,16 +185,20 @@ public class ReportController implements ActionListener, PropertyChangeListener 
                 this.cleanTable(this.reportView.LoansTable);        
                 if (reportView.btnBoth.isSelected()) {
                     this.setAllLoans(this.reportView.LoansTable);
-                    System.out.println("Ambos");
                 } else if (reportView.btnOnlySlopes.isSelected()) {
                     this.setLoansByState(this.reportView.LoansTable, false);
-                    System.out.println("Solo pendientes");
                 } else {
                     this.setLoansByState(this.reportView.LoansTable, true);
-                    System.out.println("Solo Enytregados");
                 }
             } else { // Entonces si hay fechas validas
                 this.cleanTable(this.reportView.LoansTable);
+                
+                // AQUI IRAN LOS OTRAS TABLAS
+                this.cleanTable(this.reportView.TopBooksTable);
+                this.cleanTable(this.reportView.MoreActiveCareersTable);
+                this.cleanTable(this.reportView.MostPenalizedUsersTable); 
+                this.cleanTable(this.reportView.BestUsersTable);
+                
                 if (reportView.btnBoth.isSelected()) {
                     this.setAllLoans(this.reportView.LoansTable, start, end);
                 } else if (reportView.btnOnlySlopes.isSelected()) {
@@ -124,6 +206,12 @@ public class ReportController implements ActionListener, PropertyChangeListener 
                 } else {
                     this.setLoansByState(this.reportView.LoansTable, true, start, end);
                 }
+                
+                // LAS OTRAS CONSULTAS CON LOS INTERVALOS
+                this.loadTopBooks(this.reportView.TopBooksTable, start, end);
+                this.loadTopCareers(this.reportView.MoreActiveCareersTable, start, end);
+                this.loadMostPenalized(this.reportView.MostPenalizedUsersTable, start, end); //
+                this.loadBestUsers(this.reportView.BestUsersTable, start, end);
             }
         } catch (NullPointerException e) {
             System.out.println("Error searchByRange: "+e.getMessage());
@@ -138,16 +226,21 @@ public class ReportController implements ActionListener, PropertyChangeListener 
             ExportToExcel obj;
             try {
                 obj = new ExportToExcel();
-                obj.toXLS(reportView.LoansTable);
+                JTable[] reportTables = {
+                    reportView.LoansTable,
+                    reportView.TopBooksTable,
+                    reportView.MoreActiveCareersTable,
+                    reportView.MostPenalizedUsersTable,
+                    reportView.BestUsersTable
+                };
+                obj.toXLS(reportTables);
             } catch (IOException ex) {
                 System.out.println("Error en btnExportTab1: " + ex.getMessage());
             }
         }// ====================================================================
         
         // Radio button Group
-        if (e.getSource() == reportView.btnBoth 
-            || e.getSource() == reportView.btnOnlyDelivered 
-            || e.getSource() == reportView.btnOnlySlopes) { 
+        if (e.getSource() == reportView.btnBoth || e.getSource() == reportView.btnOnlyDelivered || e.getSource() == reportView.btnOnlySlopes) {
                 searchByRange(); 
         }
     }

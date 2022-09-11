@@ -5,11 +5,12 @@
     <artifactId>SistemaBiblioteca</artifactId>
     <version>1.0</version>
     <packaging>jar</packaging>
+    
     <repositories>
         <repository>
-          <id>netbeans</id>
-          <name>Netbeans rep</name>
-          <url>http://bits.netbeans.org/maven2/</url>
+            <id>netbeans</id>
+            <name>Netbeans rep</name>
+            <url>http://bits.netbeans.org/maven2/</url>
         </repository>
         <repository>
             <id>unknown-jars-temp-repo</id>
@@ -22,6 +23,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <exec.mainClass>System.Main</exec.mainClass>
     </properties>
     
     <build>
@@ -62,7 +64,46 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-
+            
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>2.4</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addClasspath>true</addClasspath>
+                            <mainClass>System.Main</mainClass>
+                        </manifest>                      
+                    </archive>
+                </configuration>
+            </plugin>
+            
+            <!-- Para hacer el .jar con las dependencias -->
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <version>2.5.5</version><!-- Se puede omitir la version -->
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>System.Main</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            
         </plugins>
         
     </build>

@@ -21,6 +21,7 @@ import javax.swing.JOptionPane;
  * @author Luis
  */
 public class SettingController implements ActionListener{
+    
     SettingView settings;
     SettingsProperties properties;
     ConnectionDB con;
@@ -56,19 +57,18 @@ public class SettingController implements ActionListener{
     public Map<String, String> getFormSettings(){
         Map<String, String> formSettings = new HashMap<>();
         
-        String Host, Port, DB_Name, User, Password;
-        Host = this.settings.txtServerHost.getText();
-        Port = this.settings.txtServerPort.getText();
-        DB_Name= this.settings.txtDataBaseName.getText();
-        User = this.settings.txtUserName.getText();
-        Password = String.valueOf(this.settings.txtPassword.getPassword());
+        String Host = this.settings.txtServerHost.getText();
+        String Port = this.settings.txtServerPort.getText();
+        String DB_Name= this.settings.txtDataBaseName.getText();
+        String User = this.settings.txtUserName.getText();
+        String Password = String.valueOf(this.settings.txtPassword.getPassword());
 
         if (Host.length() > 0 && Port.length() > 0 && DB_Name.length() > 0 && User.length() > 0 && Password.length() > 0) {
             formSettings.put("bd.UserName", User);
-            formSettings.put("bd.ServerHost", Host);
             formSettings.put("bd.Password", Password);
-            formSettings.put("bd.DataBaseName", DB_Name);
-            formSettings.put("bd.ServerPort", Port);  
+            formSettings.put("bd.ServerHost", Host);
+            formSettings.put("bd.ServerPort", Port);
+            formSettings.put("bd.DataBaseName", DB_Name);  
         }
         
         return formSettings;

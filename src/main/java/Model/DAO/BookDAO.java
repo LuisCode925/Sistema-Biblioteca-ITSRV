@@ -19,7 +19,7 @@ import java.util.GregorianCalendar;
  *
  * @author Luis
  */
-public class BookDAO extends ConnectionDB {
+public class BookDAO {
     //TODO delete, addToInventory, updateBibliography necesitan manejar excepciones
 
     /**
@@ -29,7 +29,7 @@ public class BookDAO extends ConnectionDB {
      */
     public Book getInfo(Long ISBN){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
 
 
@@ -68,6 +68,8 @@ public class BookDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error getInfo: "+e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return book;
     }
@@ -79,7 +81,7 @@ public class BookDAO extends ConnectionDB {
      */
     public int getBooksAvalible(Long ISBN){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
 
         String sql = "SELECT BFree FROM books WHERE ISBN=?";
@@ -97,6 +99,8 @@ public class BookDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error en getBooksAvalible: "+e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return BFree;
     }
@@ -107,7 +111,7 @@ public class BookDAO extends ConnectionDB {
      */
     public List<Book> getLibrary(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Book> datos = new ArrayList<>();
@@ -146,6 +150,8 @@ public class BookDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
@@ -156,7 +162,7 @@ public class BookDAO extends ConnectionDB {
      */
     public List<String> getAllISBN(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<String> datos = new ArrayList<>();
@@ -173,6 +179,8 @@ public class BookDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
@@ -187,7 +195,7 @@ public class BookDAO extends ConnectionDB {
      */
     public boolean delete(Long ISBN){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
 
         String SQL = "DELETE FROM books WHERE ISBN=?";
 
@@ -199,6 +207,8 @@ public class BookDAO extends ConnectionDB {
         } catch (Exception e) {
             System.out.println("Error delete: " + e);
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
     }
     
@@ -209,7 +219,7 @@ public class BookDAO extends ConnectionDB {
      */
     public boolean addToInventory(Book book){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
 
         String SQL = "INSERT INTO books (ISBN, Title, Author, Editorial, Edition, "
                 + "YearPublication, Shelf, Section, Department, Category, Language, "
@@ -236,6 +246,8 @@ public class BookDAO extends ConnectionDB {
         } catch (SQLException e) {
             System.err.println(e.getMessage());
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
     }
     
@@ -246,7 +258,7 @@ public class BookDAO extends ConnectionDB {
      */
     public boolean updateBibliography(Book book){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         String SQL = "UPDATE books SET Title=?, Author=?, Editorial=?, Edition=?, "
                 + "YearPublication=?, Shelf=?, Section=?, Department=?, Category=?, "
                 + "Language=?, Stock=?, BFree=? WHERE ISBN=?";
@@ -272,6 +284,8 @@ public class BookDAO extends ConnectionDB {
         } catch (SQLException e) {
             System.err.println(e);
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
     }
     
@@ -283,7 +297,7 @@ public class BookDAO extends ConnectionDB {
      */
     public List<Book> searchByColumn(String column, String word){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Book> datos = new ArrayList<>();
@@ -323,7 +337,10 @@ public class BookDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
+    
 }

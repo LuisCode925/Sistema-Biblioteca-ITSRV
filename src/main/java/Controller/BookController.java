@@ -121,7 +121,8 @@ public class BookController implements ActionListener{
     public void getBibliography() {
         
         // Long
-        book.setISBN(Long.parseLong(this.addEditBook.txtISBN.getText()));
+        String ISBN = this.addEditBook.txtISBN.getText().replaceAll("\\D+","");
+        book.setISBN(Long.parseLong(ISBN));
         
         // String
         book.setTitle(this.addEditBook.txtTitle.getText());

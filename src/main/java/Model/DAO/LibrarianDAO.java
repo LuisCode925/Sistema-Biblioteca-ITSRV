@@ -19,9 +19,9 @@ import javax.swing.JOptionPane;
  * @author Luis
  */
 
-// Extiende del archivo de conexion para no tener que instanciarlo
-public class LibrarianDAO extends ConnectionDB {
-    
+// Extiende del archivo de conexion para no tener que instanciarlo extends ConnectionDB 
+public class LibrarianDAO {
+        
     /**
      * This function is to INSERT a object Librarian in the Data Base
      * @param lib is the object with the data from Sing UP form
@@ -29,7 +29,7 @@ public class LibrarianDAO extends ConnectionDB {
      */
     public boolean signUp(Librarian lib){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
 
         String SQL = "INSERT INTO librarians (Id, Names, LastNames, NickName, Email, Password) VALUES (null, ?, ?, ?, ?, ?)";
         
@@ -56,6 +56,8 @@ public class LibrarianDAO extends ConnectionDB {
             }
             JOptionPane.showMessageDialog(null, msg_error);
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
     }
     
@@ -66,7 +68,7 @@ public class LibrarianDAO extends ConnectionDB {
      */
     public Librarian getInfo(int librarian_id){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         Librarian librarian = new Librarian(0, null, null,  null, null, null);
@@ -89,6 +91,8 @@ public class LibrarianDAO extends ConnectionDB {
             }
         } catch (SQLException sql) {
             System.out.println("Error getInfo: "+sql.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return librarian;
     }
@@ -100,7 +104,7 @@ public class LibrarianDAO extends ConnectionDB {
      */
     public boolean updateInfo(Librarian account){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         
         String SQL = "UPDATE librarians SET Names=?, LastNames=?, NickName=?, "
                 + "Email=?, Password=?  WHERE Id=?";
@@ -120,6 +124,8 @@ public class LibrarianDAO extends ConnectionDB {
         } catch (SQLException sql) {
             System.out.println("Error updateInfo: "+sql.getMessage());
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
     }
     
@@ -130,7 +136,7 @@ public class LibrarianDAO extends ConnectionDB {
      */
     public boolean deleteAccount(int librarian_id){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         
         String SQL = "DELETE FROM librarians WHERE Id=?";
         
@@ -143,6 +149,8 @@ public class LibrarianDAO extends ConnectionDB {
         } catch (SQLException sql) {
             System.out.println("Error deleteAccount:"+sql.getMessage());
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
     }
     
@@ -153,7 +161,7 @@ public class LibrarianDAO extends ConnectionDB {
      */
     public Librarian validate(Librarian lib){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         String SQL = "SELECT * FROM librarians WHERE NickName=? AND Password=?";
@@ -177,6 +185,8 @@ public class LibrarianDAO extends ConnectionDB {
         } catch (SQLException e) {
             System.err.println(e);
             return null;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return null;
     } 
@@ -187,7 +197,7 @@ public class LibrarianDAO extends ConnectionDB {
      */
     public List<String> getAllNicknames(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<String> datos = new ArrayList<>();
@@ -202,6 +212,8 @@ public class LibrarianDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println(e);
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
