@@ -13,22 +13,19 @@ import org.junit.jupiter.api.Test;
 
 import java.util.GregorianCalendar;
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Disabled;
 
 
 /**
  *
  * @author Luis
  */
+@Disabled
 public class BookDAOTest {
     
     public BookDAO bookDAO;
     public Book book;
     public Faker faker;
-
-    @BeforeAll
-    public static void alInicio(){
-        System.out.println("Inicio del test.");
-    }
 
     @BeforeEach
     public void before(){
@@ -37,13 +34,13 @@ public class BookDAOTest {
     }
     
     @Test
-    public void getInfo_WithValid_ISBN(){
+    public void getInfo_WithValidISBN(){
         book = bookDAO.getInfo(9701704053L);
         assertEquals("Auditoría en sistemas computacionales", book.getTitle());
     }
     
     @Test
-    public void getInfo_WithInvalid_ISBN(){
+    public void getInfo_WithInvalidISBN(){
         IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class, () -> {
             bookDAO.getInfo(1027836474263L); //Code under test
         });
@@ -51,12 +48,12 @@ public class BookDAOTest {
     }
 
     @Test
-    public void getBooksAvalible_WithValid_ISBN(){
+    public void getBooksAvalible_WithValidISBN(){
         assertEquals(4, bookDAO.getBooksAvalible(9789702611905L));
     }
 
     @Test
-    public void getBooksAvalible_WithInvalid_ISBN(){
+    public void getBooksAvalible_WithInvalidISBN(){
         IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class, () -> {
             bookDAO.getBooksAvalible(1027836474263L); //Code under test
         });
@@ -72,7 +69,7 @@ public class BookDAOTest {
     public void getAllISBN(){
         assertEquals(3, bookDAO.getAllISBN().size());
     }
-
+    
     @Test
     public void addToInventory(){
         book = new Book(9780764574818L,
@@ -101,11 +98,6 @@ public class BookDAOTest {
         assertTrue(bookDAO.delete(9780764574818L));
     }
 
-    /*@Test(expected = SQLException.class) Arriba
-    public void delete_WithInvalidISBN() throws SQLException {
-        assertTrue(bookDAO.delete(9780764574818L));
-    }*/
-
     @Test
     public void searchByColumn_WithValidSearch(){
         assertEquals(1, bookDAO.searchByColumn("title", "java").size());
@@ -116,8 +108,4 @@ public class BookDAOTest {
         assertEquals(0, bookDAO.searchByColumn("title", "zshyiuzhdiuahsiudh").size());
     }
 
-    @AfterAll
-    public static void ejecutarAlFinalizar(){
-        System.out.println("Fin del test.");
-    }
 }

@@ -9,6 +9,8 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.JTable;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -24,7 +26,14 @@ import org.apache.poi.ss.usermodel.Workbook;
  */
 public class ExportToExcel {
 
-    public void toXLS(JTable t) throws IOException {
+    public void toXLS(JTable[] tables) throws IOException {
+        
+        List<String> tableNames = new ArrayList<>();
+        tableNames.add("Prestamos");
+        tableNames.add("Top Libros");
+        tableNames.add("Prestamos por Carrera"); 
+        tableNames.add("Usuarios mas Multados");
+        tableNames.add("Usuarios más Activos");
         
         JFileChooser chooser = new JFileChooser();
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Archivos de excel", "xls");
@@ -40,36 +49,44 @@ public class ExportToExcel {
                     archivoXLS.delete();
                 }
                 archivoXLS.createNewFile();
-                Workbook libro = new HSSFWorkbook();
-                FileOutputStream archivo = new FileOutputStream(archivoXLS);
-                Sheet hoja = libro.createSheet("Mi hoja de trabajo 1");
-                hoja.setDisplayGridlines(false);
-                for (int f = 0; f < t.getRowCount(); f++) {
-                    Row fila = hoja.createRow(f);
-                    for (int c = 0; c < t.getColumnCount(); c++) {
-                        Cell celda = fila.createCell(c);
-                        if (f == 0) {
-                            celda.setCellValue(t.getColumnName(c));
+
+                Workbook libro = new HSSFWorkbook(); // Es el libro de Excel
+                
+                for(JTable table : tables){
+                    FileOutputStream archivo = new FileOutputStream(archivoXLS);
+                    Sheet hoja = libro.createSheet(tableNames.get(0)); // Una hoja de Excel
+                    tableNames.remove(0);
+                    hoja.setDisplayGridlines(false);
+                    for (int f = 0; f < table.getRowCount(); f++) {
+                        Row fila = hoja.createRow(f);
+                        for (int c = 0; c < table.getColumnCount(); c++) {
+                            Cell celda = fila.createCell(c);
+                            if (f == 0) {
+                                celda.setCellValue(table.getColumnName(c));
+                            }
                         }
                     }
-                }
-                int filaInicio = 1;
-                for (int f = 0; f < t.getRowCount(); f++) {
-                    Row fila = hoja.createRow(filaInicio);
-                    filaInicio++;
-                    for (int c = 0; c < t.getColumnCount(); c++) {
-                        Cell celda = fila.createCell(c);
-                        if (t.getValueAt(f, c) instanceof Double) {
-                            celda.setCellValue(Double.parseDouble(t.getValueAt(f, c).toString()));
-                        } else if (t.getValueAt(f, c) instanceof Float) {
-                            celda.setCellValue(Float.parseFloat((String) t.getValueAt(f, c)));
-                        } else {
-                            celda.setCellValue(String.valueOf(t.getValueAt(f, c)));
+
+                    int filaInicio = 1;
+                    for (int f = 0; f < table.getRowCount(); f++) {
+                        Row fila = hoja.createRow(filaInicio);
+                        filaInicio++;
+                        for (int c = 0; c < table.getColumnCount(); c++) {
+                            Cell celda = fila.createCell(c);
+                            if (table.getValueAt(f, c) instanceof Double) {
+                                celda.setCellValue(Double.parseDouble(table.getValueAt(f, c).toString()));
+                            } else if (table.getValueAt(f, c) instanceof Float) {
+                                celda.setCellValue(Float.parseFloat((String) table.getValueAt(f, c)));
+                            } else {
+                                celda.setCellValue(String.valueOf(table.getValueAt(f, c)));
+                            }
                         }
                     }
+
+                    libro.write(archivo);
+                    archivo.close();
                 }
-                libro.write(archivo);
-                archivo.close();
+                
                 Desktop.getDesktop().open(archivoXLS);
             } catch (IOException | NumberFormatException e) {
                 throw e;

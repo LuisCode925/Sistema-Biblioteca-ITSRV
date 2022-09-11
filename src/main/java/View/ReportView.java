@@ -144,7 +144,7 @@ public class ReportView extends javax.swing.JPanel {
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Long.class, java.lang.Object.class
+                java.lang.Long.class, java.lang.Integer.class
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -168,7 +168,7 @@ public class ReportView extends javax.swing.JPanel {
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.String.class, java.lang.Object.class
+                java.lang.String.class, java.lang.Integer.class
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -196,9 +196,17 @@ public class ReportView extends javax.swing.JPanel {
 
             },
             new String [] {
-                "No. Control", "Prestamos Activos", "Total Multas"
+                "No. Control", "Total Prestamos", "Total Multas"
             }
-        ));
+        ) {
+            Class[] types = new Class [] {
+                java.lang.Integer.class, java.lang.Integer.class, java.lang.Double.class
+            };
+
+            public Class getColumnClass(int columnIndex) {
+                return types [columnIndex];
+            }
+        });
         jScrollPane4.setViewportView(MostPenalizedUsersTable);
 
         BooksTab.add(jScrollPane4, new org.netbeans.lib.awtextra.AbsoluteConstraints(510, 370, -1, 320));
@@ -208,7 +216,7 @@ public class ReportView extends javax.swing.JPanel {
         UsersTab.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jLabel1.setFont(new java.awt.Font("Roboto", 0, 24)); // NOI18N
-        jLabel1.setText("Ususarios con más prestamos en el periodo");
+        jLabel1.setText("Usuarios con más prestamos en el periodo");
         UsersTab.add(jLabel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(240, 20, -1, -1));
         UsersTab.add(jSeparator4, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 50, 560, 10));
 
@@ -221,7 +229,7 @@ public class ReportView extends javax.swing.JPanel {
             }
         ) {
             Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.Boolean.class, java.lang.Object.class, java.lang.Integer.class, java.lang.Double.class
+                java.lang.Integer.class, java.lang.String.class, java.lang.String.class, java.lang.Integer.class, java.lang.Double.class
             };
 
             public Class getColumnClass(int columnIndex) {
@@ -239,15 +247,15 @@ public class ReportView extends javax.swing.JPanel {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTable BestUsersTable;
+    public javax.swing.JTable BestUsersTable;
     public javax.swing.JPanel BooksTab;
     public com.toedter.calendar.JDateChooser FinishDatePicker;
     public javax.swing.JPanel LoansTab;
     public javax.swing.JTable LoansTable;
-    private javax.swing.JTable MoreActiveCareersTable;
-    private javax.swing.JTable MostPenalizedUsersTable;
+    public javax.swing.JTable MoreActiveCareersTable;
+    public javax.swing.JTable MostPenalizedUsersTable;
     public com.toedter.calendar.JDateChooser StartDatePicker;
-    private javax.swing.JTable TopBooksTable;
+    public javax.swing.JTable TopBooksTable;
     public javax.swing.JPanel UsersTab;
     public javax.swing.JRadioButton btnBoth;
     public javax.swing.JButton btnExportTab1;

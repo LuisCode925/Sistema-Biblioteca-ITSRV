@@ -151,9 +151,7 @@ public class LoanController implements ActionListener, FocusListener{
     @Override 
     public void actionPerformed(ActionEvent e) {
         
-        if(e.getSource() == loanView.btnClean){ 
-            cleanLoanForm();
-        }// ====================================================================
+        if(e.getSource() == loanView.btnClean){ cleanLoanForm(); }
         
         if(e.getSource() == loanView.btnSave){
             getLoanForm();
@@ -163,18 +161,38 @@ public class LoanController implements ActionListener, FocusListener{
             } else {
                 JOptionPane.showMessageDialog(null, "Hubo un error al insertar el prestamo");
             }
-        }//=====================================================================
+        }
         
     }
 
     @Override
     public void focusGained(FocusEvent e) {
+
+        if (e.getSource() == loanView.txtControlNumber) { 
+            try {
+                autocompleteControlNumber(); 
+            } catch (IllegalArgumentException ex) {
+                System.out.println("Error Numero de Control" + ex.getMessage());
+            }
+            
+        }
         
-        // ENTRANDO: Cuando se va a escribir el numero de control. ================================================
-        if (e.getSource() == loanView.txtControlNumber) { autocompleteControlNumber(); }
+        if(e.getSource() == loanView.txtISBN){ 
+            try {
+                autocompleteISBN(); 
+            } catch (IllegalArgumentException ex) {
+                System.out.println("Error ISBN: " + ex.getMessage());
+            }
+            
+        }
         
-        if(e.getSource() == loanView.txtISBN){ autocompleteISBN(); }
-        
+    }
+    
+    private void autocompleteControlNumber() {
+        List<String> suggestions = loanUserDAO.getAllControlNumbers();
+        String[] options = new String[suggestions.size()];
+        suggestions.toArray(options);
+        loadSuggestions(options, this.loanView.txtControlNumber);
     }
 
     private void autocompleteISBN() {
@@ -185,13 +203,7 @@ public class LoanController implements ActionListener, FocusListener{
         loadSuggestions(options, this.loanView.txtISBN);
     }
 
-    private void autocompleteControlNumber() {
-        List<String> suggestions = loanUserDAO.getAllControlNumbers();
-        // for(int i=0;i<suggestions.size();i++) { System.out.println(suggestions.get(i));}
-        String[] options = new String[suggestions.size()];
-        suggestions.toArray(options);
-        loadSuggestions(options, this.loanView.txtControlNumber);
-    }
+  
 
     @Override
     public void focusLost(FocusEvent e) {

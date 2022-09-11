@@ -5,12 +5,14 @@
  */
 package Model;
 
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.GregorianCalendar;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,49 +23,54 @@ import java.util.logging.Logger;
  */
 
 public class ConnectionDB {
-    public static final String Archivo = "C:\\Users\\Luis\\DataBase.properties";
-    private String Host;
-    private String Port;
-    private String DB_Name;
-    private String User;
-    private String Password;
-    private String URL;
-    private Connection con;
-
-    public ConnectionDB() {
-        this.ReadConfig();
-        this.URL = "jdbc:mysql://" + this.Host + ":" + this.Port+ "/" + this.DB_Name;
-    }
+   
+    public static final String Archivo = SettingsProperties.FILE_SETTINGS;
+    private static String Host;
+    private static String Port;
+    private static String DB_Name;
+    private static String User;
+    private static String Password;
+    private static String URL;
+    private static Connection con;
     
-    public Connection getConnection(){
-            
+    public static Connection getConnection(){
+        
+        readConfig();
+        URL = "jdbc:mysql://" + Host + ":" + Port+ "/" + DB_Name;    
+        
+        System.out.println("URL: " + URL);
+        System.out.println("Usuario: " + User);
+        System.out.println("Contraseña: "+Password);
+        
         try {
-            // Class.forName("com.mysql.jdbc.Driver");
+            // load the Driver Class
             Class.forName("com.mysql.cj.jdbc.Driver");
-            con = (Connection) DriverManager.getConnection(this.URL, this.User, this.Password);
+            con = DriverManager.getConnection(URL, User, Password);
+            
         } catch (SQLException e) {
-            System.err.println(e.getMessage());
-            /*System.out.println(URL); System.out.println(User); System.out.println(Password);*/
-        } catch (ClassNotFoundException ex) { 
+            System.err.println("Error getConnection: "+e.getMessage());
+            System.out.println(URL); System.out.println(User); System.out.println(Password);
+        } catch (ClassNotFoundException ex) {
             Logger.getLogger(ConnectionDB.class.getName()).log(Level.SEVERE, null, ex);
         }
         return con;
     }
     
-    public void ReadConfig(){
-        try (InputStream lectura = new FileInputStream(Archivo)){
-            Properties propiedades = new Properties();
+    public static void readConfig(){
+        try {
+            Properties properties = new Properties();
+            properties.load(new FileInputStream(new File(Archivo)));
             
-            propiedades.load(lectura);
-           
-            this.Host = propiedades.getProperty("bd.ServerHost");
-            this.Port = propiedades.getProperty("bd.ServerPort");
-            this.DB_Name = propiedades.getProperty("bd.DataBaseName");
-            this.User = propiedades.getProperty("bd.UserName");
-            this.Password = propiedades.getProperty("bd.Password");
-            
+            Host = properties.getProperty("bd.ServerHost");
+            Port = properties.getProperty("bd.ServerPort");
+            DB_Name = properties.getProperty("bd.DataBaseName");
+            User = properties.getProperty("bd.UserName");
+            Password = properties.getProperty("bd.Password");
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            SettingsProperties.basicProperties();
         } catch(IOException e){
-            System.err.println("Ocurrio un error: " + e.getMessage());
-        }
+            e.printStackTrace();
+        } 
     }
 }

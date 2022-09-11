@@ -20,7 +20,7 @@ import javax.swing.JOptionPane;
  *
  * @author Luis
  */
-public class UserDAO extends ConnectionDB {
+public class UserDAO {
     
     /**
      * 
@@ -29,7 +29,7 @@ public class UserDAO extends ConnectionDB {
      */
     public User getUser(int ControlNumber){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         String sql = "SELECT * FROM users WHERE ControlNumber=?";
@@ -56,6 +56,8 @@ public class UserDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println(e);
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return null;
     }
@@ -67,7 +69,7 @@ public class UserDAO extends ConnectionDB {
      */
     public boolean isBanned(int ControlNumber){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         String sql = "SELECT Banned FROM users WHERE ControlNumber=?";
@@ -84,6 +86,8 @@ public class UserDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error isBanned: "+e.getErrorCode());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return true;
     }
@@ -94,7 +98,7 @@ public class UserDAO extends ConnectionDB {
      */
     public List<User> getAllUsers(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<User> datos = new ArrayList<>();
@@ -122,6 +126,8 @@ public class UserDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println(e);
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
@@ -132,7 +138,7 @@ public class UserDAO extends ConnectionDB {
      */
     public List<String> getAllControlNumbers(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<String> datos = new ArrayList<>();
@@ -147,6 +153,8 @@ public class UserDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println(e);
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
@@ -157,7 +165,7 @@ public class UserDAO extends ConnectionDB {
      */
     public Map<Integer, String> getAllCollegeCareers(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         Map<Integer, String> careers = new HashMap<>();
@@ -173,6 +181,8 @@ public class UserDAO extends ConnectionDB {
             return careers;
         } catch (SQLException e) {
             System.out.println(e);
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return null;
     }
@@ -184,7 +194,7 @@ public class UserDAO extends ConnectionDB {
      */
     public boolean unsubscribe(User user){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         String SQL = "DELETE FROM users WHERE ControlNumber=?";
         try {
             ps = con.prepareStatement(SQL);
@@ -193,6 +203,8 @@ public class UserDAO extends ConnectionDB {
             return true;
         } catch (SQLException e) {
             System.err.println(e);
+        } finally {
+            try { con.close();} catch (Exception e) {} 
         }
         return false;
     }
@@ -202,9 +214,9 @@ public class UserDAO extends ConnectionDB {
     * @param user to all the data from the Object
     * @return true if the account to register is OK
     */
-    public boolean subscribe(User user){
+    public boolean subscribe(User user) throws SQLException{
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         String SQL = "INSERT INTO users (ControlNumber, Names, LastNames, Phone, Email, CollegeCareer, Address, Banned) VALUES (?, ?, ?, ?, ?, ?, ?, false)";
         
         try {
@@ -221,12 +233,10 @@ public class UserDAO extends ConnectionDB {
             ps.execute();
             return true;
         } catch (SQLException e) {
-            switch (e.getErrorCode()) {
-                case 1062: JOptionPane.showMessageDialog(null, "El numero de control ingresado ya esta en uso.");break;
-                default: throw new AssertionError();
-            }
+            throw new SQLException(e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
-        return false;
     }
     
     /**
@@ -236,7 +246,7 @@ public class UserDAO extends ConnectionDB {
      */
     public boolean updateInfo(User user){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         String SQL = "UPDATE users SET `Names`=?,`LastNames`=?,`Phone`=?,`Email`=?,`CollegeCareer`=?,`Address`=?,`Banned`=? WHERE `ControlNumber`=?";
         try {
             ps = con.prepareStatement(SQL);
@@ -256,6 +266,8 @@ public class UserDAO extends ConnectionDB {
         } catch (SQLException e) {
             System.err.println(e);
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
     }
     
@@ -267,7 +279,7 @@ public class UserDAO extends ConnectionDB {
      */
     public boolean banUnban(int ControlNumber, boolean state){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         String SQL = "UPDATE users SET `Banned`=? WHERE `ControlNumber`=?";
         try {
             ps = con.prepareStatement(SQL);
@@ -280,6 +292,8 @@ public class UserDAO extends ConnectionDB {
         } catch (SQLException e) {
             System.err.println(e);
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
     }
     
@@ -291,7 +305,7 @@ public class UserDAO extends ConnectionDB {
      */
     public List<User> searchByColumn(String column, String word){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<User> datos = new ArrayList<>();
@@ -322,6 +336,8 @@ public class UserDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     } 

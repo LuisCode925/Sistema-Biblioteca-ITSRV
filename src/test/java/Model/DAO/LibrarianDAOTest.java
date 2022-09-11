@@ -19,6 +19,7 @@ import org.junit.jupiter.api.DisplayName;
  *
  * @author Luis
  */
+@Disabled
 public class LibrarianDAOTest {
     
     public Faker faker;
@@ -34,7 +35,7 @@ public class LibrarianDAOTest {
     @Disabled("Si se quiere probar se deben actualizar los test que dependen del numero de librarians.")
     @Test
     @DisplayName("Registrar un administrador")
-    public void signUpOne() {
+    public void signUp() {
         librarian = new Librarian(
             0, //Id
             faker.name().firstName(), // Names
@@ -75,7 +76,7 @@ public class LibrarianDAOTest {
     
     @Test
     @DisplayName("Login Datos Validos")
-    public void validateWithTrueData(){
+    public void validate_WithTrueData(){
         librarian = new Librarian(
             0, "", "", "Rick O'Shea", "", 
             HomeController.getHash("Test".getBytes(), "SHA-256")); // Password
@@ -84,7 +85,7 @@ public class LibrarianDAOTest {
     
     @Test
     @DisplayName("Login Datos Invalidos")
-    public void validateWithFalseData(){
+    public void validate_WithFalseData(){
         librarian = new Librarian(
             0, "", "", "Rick O'Shea", "",
             HomeController.getHash("contra".getBytes(), "SHA-256")); // Contraseña Incorrecta

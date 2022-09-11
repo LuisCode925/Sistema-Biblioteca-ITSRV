@@ -8,7 +8,10 @@ package System;
 import Controller.DashboardController;
 import Model.Librarian;
 import Model.DAO.LoanDAO;
+import Model.SettingsProperties;
 import View.Dashboard;
+
+import java.sql.SQLException;
 
 /**
  *
@@ -18,7 +21,6 @@ public class Main {
     
     // Objeto que almacenara el usuario logueado en el sistema
     public static Librarian Administrator;
-    
     public static Dashboard dashboard; // Vista
     public static DashboardController ctrlDashboard; // Controlador
    
@@ -26,9 +28,14 @@ public class Main {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        
+  
         // Se actualizan las multas
-        LoanDAO.updatePenaltyFee();
+        try {
+            SettingsProperties.basicProperties();
+            LoanDAO.updatePenaltyFee(5);
+        } catch(Exception e) {
+            System.out.println(e.getMessage());
+        }
         
         // Controlador Principal 
         dashboard = new Dashboard();

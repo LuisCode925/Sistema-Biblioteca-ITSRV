@@ -6,7 +6,6 @@
 package Controller;
 
 import View.Dashboard;
-import Controller.*;
 import Model.DAO.*;
 import Model.Book;
 import Model.ConnectionDB;
@@ -32,7 +31,7 @@ import javax.swing.JPanel;
 public class DashboardController implements ActionListener, FocusListener {
     
     // Ventana del Controlador
-    public Dashboard dashboard;
+    public static Dashboard dashboard;
     public HomeView homeView;
     public LoanView loanView;
     public ReturnView returnView;
@@ -71,22 +70,22 @@ public class DashboardController implements ActionListener, FocusListener {
         dashboard.setTitle("Sistema Control de Biblioteca");
         dashboard.setLocationRelativeTo(null);
         if(Main.Administrator!=null){
-            disableSidebar(false);
+            isLoggedAdmin(true);
             initAllControllers();
         } else {
-            disableSidebar(true);
+            isLoggedAdmin(false);
             homeController();
             settingController();
         }
         ShowContent(this.homeView); // Se establce el panel de login por defecto.
     }
     
-    public void disableSidebar(boolean state){
-        this.dashboard.btnLoan.setEnabled(state);
-        this.dashboard.btnReturn.setEnabled(state);
-        this.dashboard.btnUser.setEnabled(state);
-        this.dashboard.btnBook.setEnabled(state);
-        this.dashboard.btnReport.setEnabled(state);
+    public static void isLoggedAdmin(boolean state){
+        dashboard.btnLoan.setEnabled(state);
+        dashboard.btnReturn.setEnabled(state);
+        dashboard.btnUser.setEnabled(state);
+        dashboard.btnBook.setEnabled(state);
+        dashboard.btnReport.setEnabled(state);
     }
     
     public void initAllControllers(){
@@ -148,7 +147,7 @@ public class DashboardController implements ActionListener, FocusListener {
     }
     
     private void userController(){
-        User user = null; 
+        User user = new User(0, "","", 0L, "", 0, "", false);
         UserDAO userDAO = new UserDAO();
         this.userView = new UserView();
         AddEditUser addEditUser = new AddEditUser();

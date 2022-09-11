@@ -6,10 +6,12 @@ package Model.DAO;
 
 import Model.User;
 import com.github.javafaker.Faker;
+import java.sql.SQLException;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserDAOTest {
     
@@ -80,16 +82,15 @@ public class UserDAOTest {
     @Test
     @Order(9)
     public void unsubscribe(){
-        user = new User(18220003, "Names", "LastNames", 
-                Long.MIN_VALUE, "Email", 2, "Address", false);
+        user = new User(18220003, "Names", "LastNames",Long.MIN_VALUE, "Email", 2, "Address", false);
         assertTrue(userDAO.unsubscribe(user));
     }
     
     @Test
     @Order(10)
-    public void subscribe(){
-        user = new User(18220003, "Luis Enrique", "Herrera Herrera", 
-            4871180899L, "test@maildrop.cc", 2, "Benito Juarez #5, San Vicente Rioverde", false);
+    public void subscribe() throws SQLException {
+        // user = new User(18220003, "Luis Enrique", "Herrera Herrera", 4871180899L, "test@maildrop.cc", 2, "Benito Juarez #5, San Vicente Rioverde", false);
+        user = new User(18220007, "Abraham", "Verde Rubio", 4871287707L, "bola_de_nieve@maildrop.cc", 2, "", false);
         assertTrue(userDAO.subscribe(user));
     }
     

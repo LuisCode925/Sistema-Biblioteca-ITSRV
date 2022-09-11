@@ -6,6 +6,7 @@ package Model.DAO;
 
 import Model.ConnectionDB;
 import Model.Loan;
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -19,24 +20,28 @@ import java.util.List;
  *
  * @author Luis
  */
-public class LoanDAO extends ConnectionDB {
+public class LoanDAO {
     
     /**
      * Function to call to UPDATE_PENALTY_FEE and update the value of the field
      * @return true if the call to the event in mysql server finished succesfull
      */
-    public static boolean updatePenaltyFee(){
-        PreparedStatement ps = null;
-        ConnectionDB con = new ConnectionDB();
-        String SQL = "CALL updatePenaltyFee()";
+    public static boolean updatePenaltyFee(int cost) throws SQLException{
+        Connection con = ConnectionDB.getConnection();;
+        CallableStatement stmt = null;
         
-        try { 
-            ps = con.getConnection().prepareStatement(SQL);
-            ps.execute();
+        String CALL = "CALL updatePenaltyFee(?);";
+        
+        try {
+            stmt = con.prepareCall(CALL);
+            stmt.setInt(1, cost);
+            stmt.execute();
+            
             return true;
         } catch (SQLException e) {
-            System.out.println("Error al updatePenaltyFee: " + e.getMessage());
-            return false;
+            throw new SQLException("Error al acualizar las multas."); //throw new SQLException(e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
     }
     
@@ -46,17 +51,16 @@ public class LoanDAO extends ConnectionDB {
      * @param ControlNumber the ID for the users students and profesors
      * @return a loan object that mathces with the params 
      */
-    public Loan getInfo(Long ISBN, int ControlNumber){
+    public Loan getInfo(Long ISBN, int ControlNumber) throws SQLException{
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         Calendar LoanDate = Calendar.getInstance();
         Calendar ReturnDate = Calendar.getInstance();
         
-        Loan loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, false, Short.MIN_VALUE, 0, 0, 0);
+        Loan loan = null;
         
-        //String sql = "SELECT * FROM loans WHERE ISBN=?";
         String sql = "SELECT * FROM loans WHERE (ControlNumber=?) AND (ISBN=?)";
         
         try {
@@ -64,9 +68,10 @@ public class LoanDAO extends ConnectionDB {
             ps.setInt(1, ControlNumber);
             ps.setLong(2, ISBN);
             rs = ps.executeQuery();
-               
+              
             if (rs.next()) {
-                  
+                loan = new Loan(0, 0, Long.MIN_VALUE, LoanDate, ReturnDate, false, Short.MIN_VALUE, 0, 0, 0);
+                
                 // Se comineza desde la columna 1 no del 0.
                 loan.setId(rs.getInt(1));
                 loan.setControlNumber(rs.getInt(2));
@@ -89,8 +94,9 @@ public class LoanDAO extends ConnectionDB {
               
             }
         } catch (SQLException e) {
-            loan = null;
-            System.out.println("Error getLoan: " + e.getMessage());
+            throw new SQLException("Error getLoan: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return loan;
     }
@@ -101,7 +107,7 @@ public class LoanDAO extends ConnectionDB {
      */
     public List<Object[]> getAllLoans(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Object[]> datos = new ArrayList<>();
@@ -146,6 +152,8 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error getAllLoans: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
@@ -158,7 +166,7 @@ public class LoanDAO extends ConnectionDB {
      */
     public List<Object[]> getAllLoans(Calendar start,Calendar end){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Object[]> datos = new ArrayList<>();
@@ -206,6 +214,8 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error getAllLoans: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
@@ -217,7 +227,7 @@ public class LoanDAO extends ConnectionDB {
      */
     public List<Object[]> getLoansByDelivery(boolean delivery){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Object[]> datos = new ArrayList<>();
@@ -263,6 +273,8 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error getLoansByDelivery: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
@@ -276,7 +288,7 @@ public class LoanDAO extends ConnectionDB {
      */
     public List<Object[]> getLoansByDelivery(boolean delivery, Calendar start, Calendar end){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Object[]> datos = new ArrayList<>();
@@ -325,6 +337,8 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error getLoansByDelivery: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
@@ -335,7 +349,7 @@ public class LoanDAO extends ConnectionDB {
      */
     public List<Loan> getLoansToFinalize(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Loan> datos = new ArrayList<>();
@@ -358,6 +372,8 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error getLoansToFinalize(): "+e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
@@ -368,7 +384,7 @@ public class LoanDAO extends ConnectionDB {
      */
     public List<Loan> getLoansExpired(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Loan> datos = new ArrayList<>();
@@ -394,19 +410,19 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error getLoansExpired(): "+e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
-    
-    //==========================================================================
-    
+        
     public List<Object[]> getTopBooks(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Object[]> books = new ArrayList<>();
-        String sql = "SELECT ISBN, COUNT(ISBN) FROM loans WHERE Delivered=true GROUP BY ISBN";
+        String sql = "SELECT ISBN, COUNT(ISBN) FROM loans WHERE Delivered=true GROUP BY ISBN ASC;";
         
         try {
             ps = con.prepareStatement(sql);
@@ -423,20 +439,53 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error getTopBooks: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
+        }
+        return books;
+    }
+    
+    public List<Object[]> getTopBooks(Calendar start, Calendar end){
+        PreparedStatement ps = null;
+        Connection con = ConnectionDB.getConnection();
+        ResultSet rs = null;
+        
+        List<Object[]> books = new ArrayList<>();
+        String sql = "SELECT ISBN, COUNT(ISBN) FROM loans WHERE (Delivered=true) AND (loans.LoanDate BETWEEN ? AND ?) GROUP BY ISBN ASC";
+        
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setDate(1, new java.sql.Date(start.getTimeInMillis()));
+            ps.setDate(2, new java.sql.Date(end.getTimeInMillis()));
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+
+                Object[] topBook = new Object[2];
+                
+                topBook[0] = rs.getLong(1); // Obtiene el ISBN
+                topBook[1] = rs.getInt(2); // Numero de veces que fue solicitado
+               
+                books.add(topBook);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getTopBooks: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}  
         }
         return books;
     }
     
     public List<Object[]> getMoreActiveCareers(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Object[]> books = new ArrayList<>();
         String sql = "SELECT collegecareers.Carrer, COUNT(SUBSTRING(ControlNumber, 3, 3)) AS no_loans "
-                + "FROM loans "
-                + "INNER JOIN `collegecareers` ON SUBSTRING(ControlNumber, 3, 3)=collegecareers.Code "
-                + "WHERE Delivered=true GROUP BY collegecareers.Carrer";
+                + "FROM loans " 
+                + "INNER JOIN collegecareers ON SUBSTRING(ControlNumber, 3, 3)=collegecareers.Code " 
+                + "WHERE Delivered=true GROUP BY collegecareers.Carrer DESC;";
         
         try {
             ps = con.prepareStatement(sql);
@@ -453,17 +502,55 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error getMoreActiveCareers: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
+        }
+        return books;
+    }
+    
+    public List<Object[]> getMoreActiveCareers(Calendar start, Calendar end){
+        PreparedStatement ps = null;
+        Connection con = ConnectionDB.getConnection();
+        ResultSet rs = null;
+        
+        List<Object[]> books = new ArrayList<>();
+        String sql = "SELECT collegecareers.Carrer, COUNT(SUBSTRING(ControlNumber, 3, 3)) AS no_loans "
+                + "FROM loans " 
+                + "INNER JOIN collegecareers ON SUBSTRING(ControlNumber, 3, 3)=collegecareers.Code " 
+                + "WHERE (Delivered=true) AND (loans.LoanDate BETWEEN ? AND ?) GROUP BY collegecareers.Carrer DESC;";
+        
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setDate(1, new java.sql.Date(start.getTimeInMillis()));
+            ps.setDate(2, new java.sql.Date(end.getTimeInMillis()));
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+
+                Object[] topBook = new Object[2];
+                
+                topBook[0] = rs.getString(1); // Obtiene el nombre de la carrera en cuestion 
+                topBook[1] = rs.getInt(2); // Contador de los prestamos
+               
+                books.add(topBook);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getMoreActiveCareers: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return books;
     }
     
     public List<Object[]> getMostPenalizedUsers(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Object[]> books = new ArrayList<>();
-        String sql = "SELECT ControlNumber, COUNT(ISBN) AS 'Prestamos Activos', SUM(PenaltyFee) AS 'Total Multas 'FROM `loans` GROUP BY ControlNumber";
+        String sql = "SELECT ControlNumber, COUNT(ISBN) AS 'Total Prestamos', "
+                + "SUM(PenaltyFee) AS 'Total Multas' FROM loans "
+                + "GROUP BY ControlNumber ORDER BY PenaltyFee DESC";
         // TODO falta el where entrega este en falso y el limite entre fechas
         
         try {
@@ -472,33 +559,71 @@ public class LoanDAO extends ConnectionDB {
             
             while (rs.next()) {
 
-                Object[] topBook = new Object[2];
+                Object[] topBook = new Object[3];
                 
                 topBook[0] = rs.getInt(1); // Obtiene el numero de control del usuario
                 topBook[1] = rs.getInt(2); // Contador de los prestamos
-                topBook[1] = rs.getDouble(3); // Acumulador de la multa
+                topBook[2] = rs.getDouble(3); // Acumulador de la multa
                
                 books.add(topBook);
             }
         } catch (SQLException e) {
             System.out.println("Error getMostPenalizedUsers: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
+        }
+        return books;
+    }
+    
+    public List<Object[]> getMostPenalizedUsers(Calendar start, Calendar end){
+        PreparedStatement ps = null;
+        Connection con = ConnectionDB.getConnection();
+        ResultSet rs = null;
+        
+        List<Object[]> books = new ArrayList<>();
+        String sql = "SELECT ControlNumber, COUNT(ISBN) AS 'Total Prestamos', "
+                + "SUM(PenaltyFee) AS 'Total Multas' FROM loans WHERE loans.LoanDate "
+                + "BETWEEN ? AND ? GROUP BY ControlNumber ORDER BY PenaltyFee DESC";
+        // TODO falta el where entrega este en falso y el limite entre fechas
+        
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setDate(1, new java.sql.Date(start.getTimeInMillis()));
+            ps.setDate(2, new java.sql.Date(end.getTimeInMillis()));
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+
+                Object[] topBook = new Object[3];
+                
+                topBook[0] = rs.getInt(1); // Obtiene el numero de control del usuario
+                topBook[1] = rs.getInt(2); // Contador de los prestamos
+                topBook[2] = rs.getDouble(3); // Acumulador de la multa
+               
+                books.add(topBook);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getMostPenalizedUsers: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return books;
     }
     
     public List<Object[]> getBestUsers(){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Object[]> books = new ArrayList<>();
         String sql = "SELECT loans.ControlNumber, collegecareers.Carrer AS 'Carrera', "
-                + "CONCAT(users.Names, \" \",users.LastNames) AS 'Nombre Completo', "
-                + "COUNT(ISBN) 'Total Prestamos', SUM(PenaltyFee) AS 'Total de multas' "
-                + "FROM `loans` "
-                + "INNER JOIN collegecareers ON SUBSTRING(ControlNumber, 3, 3)=collegecareers.Code "
-                + "INNER JOIN users ON loans.ControlNumber=users.ControlNumber;";
-        // TODO order by 
+                + "CONCAT(users.Names,\" \",users.LastNames) AS 'Nombre Completo', "
+                + "COUNT(ISBN) 'Total Prestamos', SUM(PenaltyFee) AS 'Total de multas' " 
+                + "FROM loans " 
+                + "INNER JOIN collegecareers ON SUBSTRING(ControlNumber, 3, 3)=collegecareers.Code " 
+                + "INNER JOIN users ON loans.ControlNumber=users.ControlNumber " 
+                + "GROUP BY loans.ControlNumber ORDER BY COUNT(ISBN) DESC;";
+        
         try {
             ps = con.prepareStatement(sql);
             rs = ps.executeQuery();
@@ -517,12 +642,53 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error getBestUsers: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return books;
     }
     
-    //==========================================================================
-    
+    public List<Object[]> getBestUsers(Calendar start, Calendar end){
+        PreparedStatement ps = null;
+        Connection con = ConnectionDB.getConnection();
+        ResultSet rs = null;
+        
+        List<Object[]> books = new ArrayList<>();
+        String sql = "SELECT loans.ControlNumber, collegecareers.Carrer AS 'Carrera', "
+                + "CONCAT(users.Names,\" \",users.LastNames) AS 'Nombre Completo', "
+                + "COUNT(ISBN) 'Total Prestamos', SUM(PenaltyFee) AS 'Total de multas' " 
+                + "FROM loans " 
+                + "WHERE loans.LoanDate BETWEEN ? AND ?"
+                + "INNER JOIN collegecareers ON SUBSTRING(ControlNumber, 3, 3)=collegecareers.Code " 
+                + "INNER JOIN users ON loans.ControlNumber=users.ControlNumber " 
+                + "GROUP BY loans.ControlNumber ORDER BY COUNT(ISBN) DESC;";
+        
+        try {
+            ps = con.prepareStatement(sql);
+            ps.setDate(1, new java.sql.Date(start.getTimeInMillis()));
+            ps.setDate(2, new java.sql.Date(end.getTimeInMillis()));
+            rs = ps.executeQuery();
+            
+            while (rs.next()) {
+
+                Object[] topUser = new Object[5];
+                
+                topUser[0] = rs.getInt(1); // No. Control
+                topUser[1] = rs.getString(2); // Carrera
+                topUser[2] = rs.getString(3); // Nombre Completo
+                topUser[3] = rs.getInt(4); // Total Prestamos
+                topUser[4] = rs.getDouble(5); // Total Multas 
+               
+                books.add(topUser);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getBestUsers: " + e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
+        }
+        return books;
+    }
+
     /**
      * Userd to check if the user can get more loans
      * @param ControlNumber the identifier of the user
@@ -530,11 +696,11 @@ public class LoanDAO extends ConnectionDB {
      */
     public List<Long> getUndelivered(int ControlNumber){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Long> datos = new ArrayList<>();
-        String sql = "SELECT ISBN FROM loans WHERE ControlNumber=?";
+        String sql = "SELECT ISBN FROM loans WHERE ControlNumber=? AND Delivered=false";
         
         try {
             ps = con.prepareStatement(sql);
@@ -547,6 +713,8 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error isFullLoans: "+e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
@@ -558,7 +726,7 @@ public class LoanDAO extends ConnectionDB {
      */
     public List<Integer> getActiveLoans(Long ISBN){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
         
         List<Integer> datos = new ArrayList<>();
@@ -574,6 +742,8 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error getBooksByISBN: "+e);
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }
@@ -585,7 +755,7 @@ public class LoanDAO extends ConnectionDB {
      */
     public boolean deleteLoan(Loan loan){
         PreparedStatement ps;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         String SQL = "DELETE FROM loans WHERE loans.Id=?";
         
         try {
@@ -597,6 +767,8 @@ public class LoanDAO extends ConnectionDB {
         } catch (SQLException e) {
             System.err.println("Error deleteLoan: "+e.getMessage());
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
     }
     
@@ -607,7 +779,7 @@ public class LoanDAO extends ConnectionDB {
      */
     public boolean bookCheckOut(Loan loan){
         PreparedStatement ps;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         
         String SQL = "INSERT INTO loans (Id, ControlNumber, ISBN, LoanDate, "
                 + "ReturnDate, Delivered, Renovations, PenaltyFee, "
@@ -633,6 +805,8 @@ public class LoanDAO extends ConnectionDB {
             return true;
         } catch (SQLException e) {
             System.err.println("Error registerLoan: "+e.getMessage());   
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return false;
     }
@@ -640,7 +814,7 @@ public class LoanDAO extends ConnectionDB {
     // Actualiza la informacion del prestamo
     public boolean updateUserInfo(Loan loan){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         
         String SQL = "UPDATE loans SET ControlNumber=?, ISBN=?, LoanDate=?, ReturnDate=?, Delivered=?, Renovations=?, PenaltyFee=?, Autorize=?, Receiver=? WHERE Id=?";
         
@@ -666,13 +840,15 @@ public class LoanDAO extends ConnectionDB {
         } catch (SQLException e) {
             System.err.println("Error updateUserInfo: "+e.getMessage());
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
-    } // ===============================================================
+    }
     
     // Actualiza la informacion del prestamo
     public boolean updateReturnDate(Long ISBN, int ControlNumber, Calendar returnDate, Short Returns){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         
         String SQL = "UPDATE loans SET ReturnDate=?, Renovations=? WHERE (ISBN=?) AND (ControlNumber=?)";
         try {
@@ -688,13 +864,15 @@ public class LoanDAO extends ConnectionDB {
         } catch (SQLException e) {
             System.err.println("Error updateReturnDate: "+e.getMessage());
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
-    } //==============================================
-    
+    }
+
     // Finaliza el prestamo y establece que administrador recibio el libro
     public boolean finalizeLoan(Long ISBN, int ControlNumber, int Receiver){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         String SQL = "UPDATE loans SET Delivered=true, Receiver=? WHERE (ISBN=?) AND (ControlNumber=?)";
         try {
             ps = con.prepareStatement(SQL);
@@ -708,12 +886,14 @@ public class LoanDAO extends ConnectionDB {
         } catch (SQLException e) {
             System.err.println("Error finalizeLoan: "+e.getMessage());
             return false;
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
-    } //=============================================================================
-    
+    }
+
     public List searchByColumn(String column, String word){
         PreparedStatement ps = null;
-        Connection con = getConnection();
+        Connection con = ConnectionDB.getConnection();
         ResultSet rs = null;
 
         List<Loan> datos = new ArrayList<>();
@@ -754,6 +934,8 @@ public class LoanDAO extends ConnectionDB {
             }
         } catch (SQLException e) {
             System.out.println("Error searchByColumn: "+e.getMessage());
+        } finally {
+            try { con.close();} catch (Exception e) {}
         }
         return datos;
     }

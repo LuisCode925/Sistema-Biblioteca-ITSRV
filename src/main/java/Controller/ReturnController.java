@@ -14,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -278,7 +279,9 @@ public class ReturnController implements ActionListener, FocusListener {
             } catch(NumberFormatException nfe){
                 // Daba un error cuando se hacia la limpieza del formulario
                 System.out.println("Error en el item, "+ nfe.getMessage());
-            } 
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
         }
         
         if (e.getSource() == returnView.btnClean) {
